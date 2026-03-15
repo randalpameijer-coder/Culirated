@@ -62,7 +62,7 @@ Approve if score >= 70. Be strict but constructive.`;
     const result = JSON.parse(cleaned);
 
     if (result.approved) {
-      await supabase.from("recipes").insert({
+      const { data, error } = await supabase.from("recipes").insert({
         title: result.title || recipe.split("\n")[0],
         description: result.description || "",
         ingredients: [],
@@ -71,6 +71,11 @@ Approve if score >= 70. Be strict but constructive.`;
         status: "approved",
         ai_score: result,
       });
+      if (error) {
+        console.error("Supabase error:", JSON.stringify(error));
+      } else {
+        console.log("Supabase insert OK:", data);
+      }
     }
 
     return NextResponse.json(result);
