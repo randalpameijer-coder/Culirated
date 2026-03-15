@@ -349,7 +349,9 @@ export default function Home() {
             {isEN && localLang !== "en" && (
               <button onClick={() => setLang(localLang)} style={{ flexShrink: 0, background: "rgba(30,22,9,0.05)", border: "1px solid rgba(180,160,120,0.3)", borderRadius: "20px", padding: "7px 14px", cursor: "pointer", fontFamily: "monospace", fontSize: "12px", color: "#4a3820", whiteSpace: "nowrap" }}>{LOCAL_NAMES[localLang]}</button>
             )}
-            <button className="submit-btn" style={{ background: "#3a7a32", color: "#e8f5e4", border: "none", borderRadius: "24px", padding: "10px 18px", cursor: "pointer", fontFamily: "monospace", fontSize: "12px", fontWeight: "500", whiteSpace: "nowrap", flexShrink: 0 }}>{t.submit}</button>
+            <a href="/submit" style={{ textDecoration: "none", flexShrink: 0 }}>
+            <button className="submit-btn" style={{ background: "#3a7a32", color: "#e8f5e4", border: "none", borderRadius: "24px", padding: "10px 18px", cursor: "pointer", fontFamily: "monospace", fontSize: "12px", fontWeight: "500", whiteSpace: "nowrap" }}>{t.submit}</button>
+          </a>
           </div>
         </nav>
 
@@ -375,8 +377,8 @@ export default function Home() {
               ))}
             </div>
             <div style={{ display: "flex", gap: "14px", flexWrap: "wrap", marginBottom: "44px" }}>
-              <button style={{ background: "#1e1609", color: "#f5f0e8", border: "none", borderRadius: "28px", padding: "14px 28px", fontFamily: "monospace", fontSize: "14px", cursor: "pointer", fontWeight: "500" }}>{t.btnDiscover}</button>
-              <button style={{ background: "transparent", color: "#3a7a32", border: "1.5px solid #3a7a32", borderRadius: "28px", padding: "14px 22px", fontFamily: "monospace", fontSize: "14px", cursor: "pointer" }}>{t.btnHow}</button>
+              <a href="/submit" style={{ textDecoration: "none" }}><button style={{ background: "#1e1609", color: "#f5f0e8", border: "none", borderRadius: "28px", padding: "14px 28px", fontFamily: "monospace", fontSize: "14px", cursor: "pointer", fontWeight: "500" }}>{t.btnDiscover}</button></a>
+              <button style={{ background: "transparent", color: "#3a7a32", border: "1.5px solid #3a7a32", borderRadius: "28px", padding: "14px 22px", fontFamily: "monospace", fontSize: "14px", cursor: "pointer" }} onClick={() => document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth" })}>{t.btnHow}</button>
             </div>
             <div className="stats-row" style={{ display: "flex", gap: "44px" }}>
               {t.stats.map(([n, l]: [string, string]) => (
@@ -466,7 +468,7 @@ export default function Home() {
                   </div>
                 ))}
               </div>
-              <button style={{ background: "#e8f5e4", color: "#1a3d16", border: "none", borderRadius: "24px", padding: "13px 28px", fontFamily: "monospace", fontSize: "13px", cursor: "pointer", fontWeight: "500" }}>{t.pipeBtn}</button>
+              <a href="/submit" style={{ textDecoration: "none" }}><button style={{ background: "#e8f5e4", color: "#1a3d16", border: "none", borderRadius: "24px", padding: "13px 28px", fontFamily: "monospace", fontSize: "13px", cursor: "pointer", fontWeight: "500" }}>{t.pipeBtn}</button></a>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
               {t.steps.map(([num, icon, title, desc]: [string, string, string, string]) => (
@@ -495,7 +497,7 @@ export default function Home() {
                 <p style={{ color: "#8a7355", fontSize: "16px", lineHeight: 1.75, maxWidth: "520px" }}>{t.ctaSub}</p>
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: "10px", alignItems: "center" }}>
-                <button style={{ background: "#3a7a32", color: "#e8f5e4", border: "none", borderRadius: "24px", padding: "16px 32px", fontFamily: "monospace", fontSize: "14px", cursor: "pointer", fontWeight: "500", whiteSpace: "nowrap" }}>{t.ctaBtn}</button>
+                <a href="/submit" style={{ textDecoration: "none" }}><button style={{ background: "#3a7a32", color: "#e8f5e4", border: "none", borderRadius: "24px", padding: "16px 32px", fontFamily: "monospace", fontSize: "14px", cursor: "pointer", fontWeight: "500", whiteSpace: "nowrap" }}>{t.ctaBtn}</button></a>
                 <span style={{ fontFamily: "monospace", fontSize: "11px", color: "#6b5840", textAlign: "center" }}>{t.ctaNote}</span>
               </div>
             </div>
