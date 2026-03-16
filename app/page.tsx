@@ -277,16 +277,22 @@ export default function Home() {
 
   useEffect(() => {
     async function fetchRecipes() {
+      const orderCol = activeFilter === 1 ? "ai_score->>score" : "created_at";
       const { data } = await supabase
         .from("recipes")
         .select("id, title, description, prep_time, calories, difficulty, ai_score, status")
         .eq("status", "approved")
         .order("created_at", { ascending: false })
         .limit(10);
-      if (data) setDbRecipes(data);
+      if (data) {
+        if (activeFilter === 1) {
+          data.sort((a: any, b: any) => (b.ai_score?.score || 0) - (a.ai_score?.score || 0));
+        }
+        setDbRecipes(data);
+      }
     }
     fetchRecipes();
-  }, []);
+  }, [activeFilter]);
 
   return (
     <>
@@ -484,14 +490,14 @@ export default function Home() {
         </div>
 
         {/* Recipe grid */}
-        <div className="section-pad" style={{ maxWidth: "1280px", margin: "0 auto", padding: "0 48px 80px", marginTop: "64px" }}>
+        <div className="section-pad" style={{ maxWidth: "1280px", margin: "0 auto", padding: "64px 48px 80px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: "32px", flexWrap: "wrap", gap: "16px" }}>
             <div>
               <h2 style={{ fontFamily: "Georgia, serif", fontSize: "38px", fontWeight: "700", color: "#1e1609", letterSpacing: "-0.5px" }}>{t.gridTitle}</h2>
               <p style={{ color: "#8a7355", fontFamily: "monospace", fontSize: "13px", marginTop: "6px" }}>{t.gridSub}</p>
             </div>
             <div style={{ display: "flex", gap: "8px" }}>
-              {t.filters.map((f: string, i: number) => (
+              {[t.filters[0], t.filters[1]].map((f: string, i: number) => (
                 <button key={f} onClick={() => setFilter(i)} style={{ background: activeFilter === i ? "#1e1609" : "transparent", color: activeFilter === i ? "#e8dfc8" : "#8a7355", border: `1px solid ${activeFilter === i ? "#1e1609" : "rgba(138,115,80,0.3)"}`, borderRadius: "20px", padding: "7px 16px", fontFamily: "monospace", fontSize: "12px", cursor: "pointer" }}>{f}</button>
               ))}
             </div>
