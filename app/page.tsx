@@ -189,7 +189,17 @@ const T: Record<string, any> = {
   },
 };
 
-const RECIPES = [
+const NAV_CATS = [
+  { label: "Cuisine", icon: "🌍", items: ["Italian", "Mexican", "Asian", "Indian", "Thai", "Chinese", "Japanese", "Greek", "Middle Eastern", "French", "American", "Mediterranean"] },
+  { label: "Course", icon: "🍽️", items: ["Breakfast", "Lunch", "Dinner", "Appetizer", "Side dish", "Dessert", "Snack", "Drink"] },
+  { label: "Diet", icon: "🌿", items: ["Vegetarian", "Vegan", "Gluten-free", "Dairy-free", "Low-carb", "High-protein", "Mediterranean", "Low-FODMAP"] },
+  { label: "Method", icon: "🔥", items: ["Air fryer", "Slow cooker", "Sheet pan", "BBQ & Grill", "One pot", "No-cook"] },
+  { label: "Time", icon: "⏱️", items: ["Under 20 min", "Under 30 min", "Under 1 hour", "Weekend project"] },
+  { label: "Occasion", icon: "🎉", items: ["Weeknight", "Meal prep", "Holidays", "Kids", "Date night", "Batch cooking"] },
+  { label: "Ingredient", icon: "🥩", items: ["Chicken", "Beef", "Fish & seafood", "Pasta", "Rice", "Eggs", "Vegetables", "Legumes", "Pork"] },
+];
+
+
   { id: 1, titles: { en: "Moroccan Lamb Stew", nl: "Marokkaanse Lamsschotel", de: "Marokkanischer Lammeintopf", fr: "Ragoût d'Agneau Marocain" }, time: "90", score: 97, author: "Fatima B.", image: "https://images.unsplash.com/photo-1547592180-85f173990554?w=800&q=80", calories: 480, cat: "meast", tags: ["prot", "gf"] },
   { id: 2, titles: { en: "Creamy Truffle Risotto", nl: "Crémeux Risotto met Truffel", de: "Cremiges Trüffel-Risotto", fr: "Risotto Crémeux à la Truffe" }, time: "35", score: 94, author: "Marco V.", image: "https://images.unsplash.com/photo-1476124369491-e7addf5db371?w=600&q=80", calories: 390, cat: "ital", tags: ["veg"] },
   { id: 3, titles: { en: "Thai Prawn Soup", nl: "Thaise Garnalen Soep", de: "Thaisuppe mit Garnelen", fr: "Soupe de Crevettes Thaïe" }, time: "20", score: 98, author: "Nong P.", image: "https://images.unsplash.com/photo-1455619452474-d2be8b1e70cd?w=600&q=80", calories: 280, cat: "asian", tags: ["quick", "gf"] },
@@ -252,7 +262,7 @@ function RecipeCard({ recipe, featured, lang, t }: { recipe: any; featured?: boo
 export default function Home() {
   const localLang = detectLocalLang();
   const [lang, setLang] = useState(localLang);
-  const [activeNav, setNav] = useState(0);
+  const [activeNav, setActiveNav] = useState("");
   const [activeFilter, setFilter] = useState(0);
   const t = T[lang];
   const isEN = lang === "en";
@@ -278,8 +288,12 @@ export default function Home() {
 
         .how-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; max-width: 1280px; margin: 0 auto; padding: 80px 48px; }
         .cta-grid { display: grid; grid-template-columns: 1fr auto; gap: 48px; align-items: center; }
-        .nav-links { display: flex; gap: 2px; flex: 1; }
-        .nav-search { display: block; }
+        .cat-nav { max-width: 1280px; margin: 0 auto; padding: 0 48px; display: flex; gap: 0; overflow-x: auto; }
+        .cat-nav-item { position: relative; }
+        .cat-nav::-webkit-scrollbar { display: none; }
+        @media (max-width: 768px) {
+          .cat-nav { padding: 0 16px; }
+        }
         .nav-inner { max-width: 1280px; margin: 0 auto; display: flex; align-items: center; height: 70px; gap: 24px; padding: 0 48px; }
 
         @media (max-width: 768px) {
@@ -329,18 +343,15 @@ export default function Home() {
 
         {/* Nav */}
         <nav style={{ background: "rgba(245,240,232,0.97)", backdropFilter: "blur(20px)", borderBottom: "1px solid rgba(180,160,120,0.25)", position: "sticky", top: 0, zIndex: 100 }}>
-          <div className="nav-inner">
-            <div style={{ display: "flex", alignItems: "center", gap: "10px", flexShrink: 0 }}>
+          {/* Top row: logo + search + lang + submit */}
+          <div className="nav-inner" style={{ borderBottom: "1px solid rgba(180,160,120,0.12)" }}>
+            <a href="/" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: "10px", flexShrink: 0 }}>
               <div style={{ width: "36px", height: "36px", borderRadius: "10px", background: "linear-gradient(135deg,#2d5a27,#6aa86e)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "18px" }}>🍃</div>
               <span style={{ fontFamily: "Georgia, serif", fontWeight: "900", fontSize: "22px", color: "#1e1609" }}>Culirated</span>
-            </div>
-            <div className="nav-links">
-              {t.nav.map((item: string, i: number) => (
-                <button key={i} onClick={() => setNav(i)} style={{ background: activeNav === i ? "rgba(74,122,61,0.12)" : "transparent", border: "none", borderRadius: "8px", padding: "8px 13px", cursor: "pointer", fontFamily: "monospace", fontSize: "12px", color: activeNav === i ? "#2d5a27" : "#6b5840", whiteSpace: "nowrap" }}>{item}</button>
-              ))}
-            </div>
+            </a>
+            <div style={{ flex: 1 }} />
             <div className="nav-search" style={{ position: "relative" }}>
-              <input placeholder={t.search} style={{ background: "rgba(180,160,120,0.12)", border: "1px solid transparent", borderRadius: "24px", padding: "9px 16px 9px 36px", fontFamily: "monospace", fontSize: "12px", color: "#1e1609", outline: "none", width: "185px" }} />
+              <input placeholder={t.search} style={{ background: "rgba(180,160,120,0.12)", border: "1px solid transparent", borderRadius: "24px", padding: "9px 16px 9px 36px", fontFamily: "monospace", fontSize: "12px", color: "#1e1609", outline: "none", width: "200px" }} />
               <span style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", fontSize: "13px", color: "#8a7355" }}>🔍</span>
             </div>
             {!isEN && (
@@ -350,8 +361,31 @@ export default function Home() {
               <button onClick={() => setLang(localLang)} style={{ flexShrink: 0, background: "rgba(30,22,9,0.05)", border: "1px solid rgba(180,160,120,0.3)", borderRadius: "20px", padding: "7px 14px", cursor: "pointer", fontFamily: "monospace", fontSize: "12px", color: "#4a3820", whiteSpace: "nowrap" }}>{LOCAL_NAMES[localLang]}</button>
             )}
             <a href="/submit" style={{ textDecoration: "none", flexShrink: 0 }}>
-            <button className="submit-btn" style={{ background: "#3a7a32", color: "#e8f5e4", border: "none", borderRadius: "24px", padding: "10px 18px", cursor: "pointer", fontFamily: "monospace", fontSize: "12px", fontWeight: "500", whiteSpace: "nowrap" }}>{t.submit}</button>
-          </a>
+              <button className="submit-btn" style={{ background: "#3a7a32", color: "#e8f5e4", border: "none", borderRadius: "24px", padding: "10px 18px", cursor: "pointer", fontFamily: "monospace", fontSize: "12px", fontWeight: "500", whiteSpace: "nowrap" }}>{t.submit}</button>
+            </a>
+          </div>
+          {/* Category nav row with dropdowns */}
+          <div className="cat-nav">
+            {NAV_CATS.map((cat) => (
+              <div key={cat.label} className="cat-nav-item"
+                onMouseEnter={() => setActiveNav(cat.label)}
+                onMouseLeave={() => setActiveNav("")}
+              >
+                <button style={{ background: "transparent", border: "none", padding: "12px 14px", cursor: "pointer", fontFamily: "monospace", fontSize: "12px", color: activeNav === cat.label ? "#2d5a27" : "#6b5840", fontWeight: activeNav === cat.label ? "500" : "400", display: "flex", alignItems: "center", gap: "5px", whiteSpace: "nowrap" }}>
+                  {cat.icon} {cat.label} <span style={{ fontSize: "9px", opacity: 0.6 }}>▾</span>
+                </button>
+                {activeNav === cat.label && (
+                  <div style={{ position: "absolute", top: "100%", left: "0", background: "#fff", border: "1px solid rgba(180,160,120,0.2)", borderRadius: "12px", boxShadow: "0 12px 40px rgba(30,22,9,0.12)", padding: "12px", minWidth: "200px", zIndex: 200, display: "grid", gridTemplateColumns: cat.items.length > 6 ? "1fr 1fr" : "1fr", gap: "2px" }}>
+                    {cat.items.map((item) => (
+                      <a key={item} href={`/recipes/${cat.label.toLowerCase()}/${item.toLowerCase().replace(/ /g, "-")}`} style={{ display: "block", padding: "7px 12px", fontFamily: "monospace", fontSize: "12px", color: "#4a3820", textDecoration: "none", borderRadius: "8px", whiteSpace: "nowrap" }}
+                        onMouseEnter={e => (e.currentTarget.style.background = "rgba(74,122,61,0.08)")}
+                        onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
+                      >{item}</a>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
         </nav>
 
