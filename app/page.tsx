@@ -289,11 +289,11 @@ export default function Home() {
 
         .how-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; max-width: 1280px; margin: 0 auto; padding: 80px 48px; }
         .cta-grid { display: grid; grid-template-columns: 1fr auto; gap: 48px; align-items: center; }
-        .cat-nav { max-width: 1280px; margin: 0 auto; padding: 0 48px; display: flex; gap: 0; overflow-x: auto; }
+        .cat-nav { max-width: 1280px; margin: 0 auto; padding: 0 48px; display: flex; gap: 0; }
         .cat-nav-item { position: relative; }
-        .cat-nav::-webkit-scrollbar { display: none; }
         @media (max-width: 768px) {
-          .cat-nav { padding: 0 16px; }
+          .cat-nav { padding: 0 16px; overflow-x: auto; }
+          .cat-nav::-webkit-scrollbar { display: none; }
         }
         .nav-inner { max-width: 1280px; margin: 0 auto; display: flex; align-items: center; height: 70px; gap: 24px; padding: 0 48px; }
 
