@@ -366,19 +366,19 @@ export default function Home() {
             </a>
           </div>
           {/* Category nav row with dropdowns */}
-          <div className="cat-nav">
+          <div className="cat-nav" onClick={e => { if ((e.target as HTMLElement).closest('.cat-nav-item') === null) setActiveNav(""); }}>
             {NAV_CATS.map((cat) => (
-              <div key={cat.label} className="cat-nav-item"
-                onMouseEnter={() => setActiveNav(cat.label)}
-                onMouseLeave={() => setActiveNav("")}
-              >
-                <button style={{ background: "transparent", border: "none", padding: "12px 14px", cursor: "pointer", fontFamily: "monospace", fontSize: "12px", color: activeNav === cat.label ? "#2d5a27" : "#6b5840", fontWeight: activeNav === cat.label ? "500" : "400", display: "flex", alignItems: "center", gap: "5px", whiteSpace: "nowrap" }}>
-                  {cat.icon} {cat.label} <span style={{ fontSize: "9px", opacity: 0.6 }}>▾</span>
+              <div key={cat.label} className="cat-nav-item" style={{ position: "relative" }}>
+                <button
+                  onClick={() => setActiveNav(activeNav === cat.label ? "" : cat.label)}
+                  style={{ background: activeNav === cat.label ? "rgba(74,122,61,0.08)" : "transparent", border: "none", padding: "12px 14px", cursor: "pointer", fontFamily: "monospace", fontSize: "12px", color: activeNav === cat.label ? "#2d5a27" : "#6b5840", fontWeight: activeNav === cat.label ? "500" : "400", display: "flex", alignItems: "center", gap: "5px", whiteSpace: "nowrap", borderRadius: "8px" }}>
+                  {cat.icon} {cat.label} <span style={{ fontSize: "9px", opacity: 0.6, transform: activeNav === cat.label ? "rotate(180deg)" : "none", display: "inline-block", transition: "transform 0.2s" }}>▾</span>
                 </button>
                 {activeNav === cat.label && (
-                  <div style={{ position: "absolute", top: "100%", left: "0", background: "#fff", border: "1px solid rgba(180,160,120,0.2)", borderRadius: "12px", boxShadow: "0 12px 40px rgba(30,22,9,0.12)", padding: "12px", minWidth: "200px", zIndex: 200, display: "grid", gridTemplateColumns: cat.items.length > 6 ? "1fr 1fr" : "1fr", gap: "2px" }}>
+                  <div style={{ position: "absolute", top: "calc(100% + 4px)", left: "0", background: "#fff", border: "1px solid rgba(180,160,120,0.2)", borderRadius: "12px", boxShadow: "0 12px 40px rgba(30,22,9,0.15)", padding: "8px", minWidth: "180px", zIndex: 300, display: "grid", gridTemplateColumns: cat.items.length > 6 ? "1fr 1fr" : "1fr", gap: "2px" }}>
                     {cat.items.map((item) => (
-                      <a key={item} href={`/recipes/${cat.label.toLowerCase()}/${item.toLowerCase().replace(/ /g, "-")}`} style={{ display: "block", padding: "7px 12px", fontFamily: "monospace", fontSize: "12px", color: "#4a3820", textDecoration: "none", borderRadius: "8px", whiteSpace: "nowrap" }}
+                      <a key={item} href={`/recipes/${cat.label.toLowerCase()}/${item.toLowerCase().replace(/ /g, "-")}`}
+                        style={{ display: "block", padding: "8px 12px", fontFamily: "monospace", fontSize: "12px", color: "#4a3820", textDecoration: "none", borderRadius: "8px", whiteSpace: "nowrap", transition: "background 0.15s" }}
                         onMouseEnter={e => (e.currentTarget.style.background = "rgba(74,122,61,0.08)")}
                         onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
                       >{item}</a>
