@@ -1,6 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { createClient } from "@supabase/supabase-js";
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 
 function detectLocalLang(): string {
   if (typeof navigator === "undefined") return "en";
@@ -265,8 +271,22 @@ export default function Home() {
   const [lang, setLang] = useState(localLang);
   const [activeNav, setActiveNav] = useState("");
   const [activeFilter, setFilter] = useState(0);
+  const [dbRecipes, setDbRecipes] = useState<any[]>([]);
   const t = T[lang];
   const isEN = lang === "en";
+
+  useEffect(() => {
+    async function fetchRecipes() {
+      const { data } = await supabase
+        .from("recipes")
+        .select("id, title, description, prep_time, calories, difficulty, ai_score, status")
+        .eq("status", "approved")
+        .order("created_at", { ascending: false })
+        .limit(10);
+      if (data) setDbRecipes(data);
+    }
+    fetchRecipes();
+  }, []);
 
   return (
     <>
@@ -477,8 +497,39 @@ export default function Home() {
             </div>
           </div>
           <div className="recipe-grid">
-            <RecipeCard recipe={RECIPES[0]} featured lang={lang} t={t} />
-            {RECIPES.slice(1, 5).map(r => <RecipeCard key={r.id} recipe={r} lang={lang} t={t} />)}
+            {dbRecipes.length > 0 ? (
+              dbRecipes.slice(0, 5).map((r, i) => (
+                <div key={r.id} className={i === 0 ? "recipe-card featured-card" : "recipe-card"} style={{ borderRadius: "16px", overflow: "hidden", background: "#faf8f3", border: "1px solid rgba(180,160,120,0.2)", cursor: "pointer", ...(i === 0 ? { gridColumn: "span 2", display: "grid", gridTemplateColumns: "1fr 1fr" } : {}) }}>
+                  <div style={{ position: "relative", height: i === 0 ? "100%" : "220px", minHeight: i === 0 ? "280px" : "auto", background: "linear-gradient(135deg,#2d5a27,#4a8c41)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <span style={{ fontSize: "48px" }}>🍽️</span>
+                    <div style={{ position: "absolute", top: "12px", right: "12px", display: "flex", alignItems: "center", gap: "5px", background: "linear-gradient(135deg,#2d5a27,#4a8c41)", borderRadius: "20px", padding: "4px 10px", fontSize: "11px", fontFamily: "monospace", color: "#e8f5e6" }}>
+                      ✦ AI {r.ai_score?.score || 90}/100
+                    </div>
+                  </div>
+                  <div style={{ padding: "20px", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+                    <div>
+                      <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginBottom: "10px" }}>
+                        {r.ai_score?.cuisine && <span style={{ fontSize: "11px", fontFamily: "monospace", color: "#8a7355", background: "rgba(140,115,80,0.12)", borderRadius: "20px", padding: "3px 10px" }}>{r.ai_score.cuisine}</span>}
+                        {r.ai_score?.diet?.[0] && <span style={{ fontSize: "11px", fontFamily: "monospace", color: "#4a7a3d", background: "rgba(74,122,61,0.1)", borderRadius: "20px", padding: "3px 10px" }}>{r.ai_score.diet[0]}</span>}
+                      </div>
+                      <h3 style={{ fontFamily: "Georgia, serif", fontSize: i === 0 ? "24px" : "18px", fontWeight: "700", color: "#1e1609", lineHeight: 1.25, marginBottom: "8px" }}>{r.title}</h3>
+                      {i === 0 && r.description && <p style={{ color: "#8a7355", fontSize: "14px", lineHeight: 1.6, marginBottom: "16px" }}>{r.description}</p>}
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: "12px", borderTop: "1px solid rgba(180,160,120,0.15)" }}>
+                      <div style={{ display: "flex", gap: "12px" }}>
+                        {r.prep_time && <span style={{ fontSize: "12px", color: "#8a7355", fontFamily: "monospace" }}>⏱ {r.prep_time} min</span>}
+                        {r.calories && <span style={{ fontSize: "12px", color: "#8a7355", fontFamily: "monospace" }}>🔥 {r.calories} kcal</span>}
+                      </div>
+                      <span style={{ fontSize: "10px", fontFamily: "monospace", color: "#4a7a3d", background: "rgba(74,122,61,0.1)", borderRadius: "10px", padding: "2px 8px" }}>{t.aiChecked}</span>
+                    </div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div style={{ gridColumn: "span 3", textAlign: "center", padding: "60px", color: "#8a7355", fontFamily: "monospace", fontSize: "13px" }}>
+                Loading recipes…
+              </div>
+            )}
           </div>
           <div style={{ textAlign: "center", marginTop: "48px" }}>
             <button style={{ background: "transparent", color: "#1e1609", border: "1.5px solid rgba(30,22,9,0.25)", borderRadius: "28px", padding: "14px 40px", fontFamily: "monospace", fontSize: "13px", cursor: "pointer" }}>{t.loadMore}</button>
