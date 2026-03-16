@@ -200,11 +200,12 @@ const NAV_CATS = [
 ];
 
 
-  { id: 1, titles: { en: "Moroccan Lamb Stew", nl: "Marokkaanse Lamsschotel", de: "Marokkanischer Lammeintopf", fr: "Ragoût d\u2019Agneau Marocain" }, time: "90", score: 97, author: "Fatima B.", image: "https://images.unsplash.com/photo-1547592180-85f173990554?w=800&q=80", calories: 480, cat: "meast", tags: ["prot", "gf"] },
-  { id: 2, titles: { en: "Creamy Truffle Risotto", nl: "Crémeux Risotto met Truffel", de: "Cremiges Trüffel-Risotto", fr: "Risotto Crémeux à la Truffe" }, time: "35", score: 94, author: "Marco V.", image: "https://images.unsplash.com/photo-1476124369491-e7addf5db371?w=600&q=80", calories: 390, cat: "ital", tags: ["veg"] },
-  { id: 3, titles: { en: "Thai Prawn Soup", nl: "Thaise Garnalen Soep", de: "Thaisuppe mit Garnelen", fr: "Soupe de Crevettes Thaïe" }, time: "20", score: 98, author: "Nong P.", image: "https://images.unsplash.com/photo-1455619452474-d2be8b1e70cd?w=600&q=80", calories: 280, cat: "asian", tags: ["quick", "gf"] },
+const RECIPES = [
+  { id: 1, titles: { en: "Moroccan Lamb Stew", nl: "Marokkaanse Lamsschotel", de: "Marokkanischer Lammeintopf", fr: "Tajine Agneau Marocain" }, time: "90", score: 97, author: "Fatima B.", image: "https://images.unsplash.com/photo-1547592180-85f173990554?w=800&q=80", calories: 480, cat: "meast", tags: ["prot", "gf"] },
+  { id: 2, titles: { en: "Creamy Truffle Risotto", nl: "Cremeux Risotto met Truffel", de: "Cremiges Truffel-Risotto", fr: "Risotto Cremeux Truffe" }, time: "35", score: 94, author: "Marco V.", image: "https://images.unsplash.com/photo-1476124369491-e7addf5db371?w=600&q=80", calories: 390, cat: "ital", tags: ["veg"] },
+  { id: 3, titles: { en: "Thai Prawn Soup", nl: "Thaise Garnalen Soep", de: "Thaisuppe mit Garnelen", fr: "Soupe Crevettes Thaie" }, time: "20", score: 98, author: "Nong P.", image: "https://images.unsplash.com/photo-1455619452474-d2be8b1e70cd?w=600&q=80", calories: 280, cat: "asian", tags: ["quick", "gf"] },
   { id: 4, titles: { en: "Classic Apple Pie", nl: "Klassieke Appeltaart", de: "Klassischer Apfelkuchen", fr: "Tarte aux Pommes Classique" }, time: "75", score: 96, author: "Lieke D.", image: "https://images.unsplash.com/photo-1568571780765-9276837fa9f7?w=600&q=80", calories: 340, cat: "bake", tags: ["veg", "wknd"] },
-  { id: 5, titles: { en: "Miso Buddha Bowl", nl: "Buddha Bowl met Miso", de: "Miso-Buddha-Bowl", fr: "Buddha Bowl au Miso" }, time: "25", score: 92, author: "Sanne K.", image: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=600&q=80", calories: 310, cat: "fus", tags: ["vegan", "quick"] },
+  { id: 5, titles: { en: "Miso Buddha Bowl", nl: "Buddha Bowl met Miso", de: "Miso-Buddha-Bowl", fr: "Buddha Bowl Miso" }, time: "25", score: 92, author: "Sanne K.", image: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=600&q=80", calories: 310, cat: "fus", tags: ["vegan", "quick"] },
 ];
 
 function AIBadge({ score }: { score: number }) {
