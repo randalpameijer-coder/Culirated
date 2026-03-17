@@ -309,9 +309,7 @@ export default function Home() {
         .cats-grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 12px; }
         .recipe-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
         .recipe-card { border-radius: 16px; overflow: hidden; background: #faf8f3; border: 1px solid rgba(180,160,120,0.2); cursor: pointer; display: flex; flex-direction: column; }
-        .featured-card { grid-column: span 2; }
         .recipe-img-wrap { position: relative; aspect-ratio: 4/3; overflow: hidden; flex-shrink: 0; }
-        .featured-card .recipe-img-wrap { aspect-ratio: 16/7; }
         .recipe-img-wrap img { width: 100%; height: 100%; object-fit: cover; object-position: center; display: block; }
         .recipe-card-title { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 
@@ -506,42 +504,57 @@ export default function Home() {
           </div>
           <div className="recipe-grid">
             {dbRecipes.length > 0 ? (
-              dbRecipes.slice(0, 5).map((r, i) => (
-                <div key={r.id} className={i === 0 ? "recipe-card featured-card" : "recipe-card"} style={{ borderRadius: "16px", overflow: "hidden", background: "#faf8f3", border: "1px solid rgba(180,160,120,0.2)", cursor: "pointer", ...(i === 0 ? { gridColumn: "span 2" } : {}) }}>
-                  <div className={i === 0 ? "recipe-img-wrap featured-img" : "recipe-img-wrap"} style={{ position: "relative" }}>
-                    {r.image_url ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={r.image_url} alt={r.title} style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center", display: "block" }} />
-                    ) : (
-                      <div style={{ width: "100%", height: "100%", background: "linear-gradient(135deg,#2d5a27,#4a8c41)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                        <span style={{ fontSize: "48px" }}>🍽️</span>
+              <>
+                {dbRecipes.slice(0, 5).map((r) => (
+                  <div key={r.id} className="recipe-card">
+                    <div className="recipe-img-wrap">
+                      {r.image_url ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={r.image_url} alt={r.title} />
+                      ) : (
+                        <div style={{ width: "100%", height: "100%", background: "linear-gradient(135deg,#2d5a27,#4a8c41)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                          <span style={{ fontSize: "48px" }}>🍽️</span>
+                        </div>
+                      )}
+                      <div style={{ position: "absolute", top: "12px", right: "12px", display: "flex", alignItems: "center", gap: "5px", background: "linear-gradient(135deg,#2d5a27,#4a8c41)", borderRadius: "20px", padding: "4px 10px", fontSize: "11px", fontFamily: "monospace", color: "#e8f5e6" }}>
+                        ✦ AI {r.ai_score?.score || 90}/100
                       </div>
-                    )}
-                    <div style={{ position: "absolute", top: "12px", right: "12px", display: "flex", alignItems: "center", gap: "5px", background: "linear-gradient(135deg,#2d5a27,#4a8c41)", borderRadius: "20px", padding: "4px 10px", fontSize: "11px", fontFamily: "monospace", color: "#e8f5e6" }}>
-                      ✦ AI {r.ai_score?.score || 90}/100
+                    </div>
+                    <div style={{ padding: "16px 20px 20px", display: "flex", flexDirection: "column", justifyContent: "space-between", flex: 1 }}>
+                      <div>
+                        <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginBottom: "8px" }}>
+                          {r.ai_score?.cuisine && <span style={{ fontSize: "11px", fontFamily: "monospace", color: "#8a7355", background: "rgba(140,115,80,0.12)", borderRadius: "20px", padding: "3px 10px" }}>{r.ai_score.cuisine}</span>}
+                          {r.ai_score?.diet?.[0] && <span style={{ fontSize: "11px", fontFamily: "monospace", color: "#4a7a3d", background: "rgba(74,122,61,0.1)", borderRadius: "20px", padding: "3px 10px" }}>{r.ai_score.diet[0]}</span>}
+                        </div>
+                        <h3 className="recipe-card-title" style={{ fontFamily: "Georgia, serif", fontSize: "18px", fontWeight: "700", color: "#1e1609", lineHeight: 1.25, marginBottom: "8px" }}>{r.title}</h3>
+                      </div>
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: "12px", borderTop: "1px solid rgba(180,160,120,0.15)" }}>
+                        <div style={{ display: "flex", gap: "12px" }}>
+                          {r.prep_time && <span style={{ fontSize: "12px", color: "#8a7355", fontFamily: "monospace" }}>⏱ {r.prep_time} min</span>}
+                          {r.calories && <span style={{ fontSize: "12px", color: "#8a7355", fontFamily: "monospace" }}>🔥 {r.calories} kcal</span>}
+                        </div>
+                        <span style={{ fontSize: "10px", fontFamily: "monospace", color: "#4a7a3d", background: "rgba(74,122,61,0.1)", borderRadius: "10px", padding: "2px 8px" }}>{t.aiChecked}</span>
+                      </div>
                     </div>
                   </div>
-                  <div style={{ padding: "20px", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+                ))}
+                {/* 6th slot: Submit CTA */}
+                <a href="/submit" style={{ textDecoration: "none" }}>
+                  <div style={{ borderRadius: "16px", background: "linear-gradient(135deg,#1e1609,#2d1f0a)", border: "1px solid rgba(180,160,120,0.15)", cursor: "pointer", display: "flex", flexDirection: "column", justifyContent: "space-between", padding: "32px", height: "100%", minHeight: "280px", boxSizing: "border-box" }}>
                     <div>
-                      <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginBottom: "10px" }}>
-                        {r.ai_score?.cuisine && <span style={{ fontSize: "11px", fontFamily: "monospace", color: "#8a7355", background: "rgba(140,115,80,0.12)", borderRadius: "20px", padding: "3px 10px" }}>{r.ai_score.cuisine}</span>}
-                        {r.ai_score?.diet?.[0] && <span style={{ fontSize: "11px", fontFamily: "monospace", color: "#4a7a3d", background: "rgba(74,122,61,0.1)", borderRadius: "20px", padding: "3px 10px" }}>{r.ai_score.diet[0]}</span>}
-                      </div>
-                      <h3 className="recipe-card-title" style={{ fontFamily: "Georgia, serif", fontSize: i === 0 ? "24px" : "18px", fontWeight: "700", color: "#1e1609", lineHeight: 1.25, marginBottom: "8px" }}>{r.title}</h3>
-                      {i === 0 && r.description && <p style={{ color: "#8a7355", fontSize: "14px", lineHeight: 1.6, marginBottom: "16px" }}>{r.description}</p>}
+                      <div style={{ fontSize: "36px", marginBottom: "16px" }}>👨‍🍳</div>
+                      <div style={{ fontFamily: "monospace", fontSize: "11px", color: "#8a7355", letterSpacing: "1px", marginBottom: "12px" }}>✦ YOUR RECIPE HERE</div>
+                      <h3 style={{ fontFamily: "Georgia, serif", fontSize: "22px", fontWeight: "700", color: "#e8dfc8", lineHeight: 1.3, marginBottom: "12px" }}>Got a recipe worth sharing?</h3>
+                      <p style={{ fontFamily: "monospace", fontSize: "12px", color: "#8a7355", lineHeight: 1.6 }}>Submit it. AI checks it. Goes live within minutes.</p>
                     </div>
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: "12px", borderTop: "1px solid rgba(180,160,120,0.15)" }}>
-                      <div style={{ display: "flex", gap: "12px" }}>
-                        {r.prep_time && <span style={{ fontSize: "12px", color: "#8a7355", fontFamily: "monospace" }}>⏱ {r.prep_time} min</span>}
-                        {r.calories && <span style={{ fontSize: "12px", color: "#8a7355", fontFamily: "monospace" }}>🔥 {r.calories} kcal</span>}
-                      </div>
-                      <span style={{ fontSize: "10px", fontFamily: "monospace", color: "#4a7a3d", background: "rgba(74,122,61,0.1)", borderRadius: "10px", padding: "2px 8px" }}>{t.aiChecked}</span>
+                    <div style={{ marginTop: "24px", display: "inline-flex", alignItems: "center", gap: "8px", background: "#3a7a32", borderRadius: "20px", padding: "10px 20px", fontFamily: "monospace", fontSize: "12px", color: "#e8f5e4", fontWeight: "500", width: "fit-content" }}>
+                      + Submit Recipe →
                     </div>
                   </div>
-                </div>
-              ))
+                </a>
+              </>
             ) : (
-              <div style={{ gridColumn: "span 3", textAlign: "center", padding: "60px", color: "#8a7355", fontFamily: "monospace", fontSize: "13px" }}>
+              <div style={{ gridColumn: "span 2", textAlign: "center", padding: "60px", color: "#8a7355", fontFamily: "monospace", fontSize: "13px" }}>
                 Loading recipes…
               </div>
             )}
