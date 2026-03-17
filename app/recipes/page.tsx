@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
 
@@ -22,6 +22,14 @@ const FILTERS = [
 const PAGE_SIZE = 12;
 
 export default function RecipesPage() {
+  return (
+    <Suspense fallback={<div style={{ padding: "80px", textAlign: "center", fontFamily: "monospace", color: "#8a7355" }}>Loading…</div>}>
+      <RecipesContent />
+    </Suspense>
+  );
+}
+
+function RecipesContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [active, setActive] = useState<Record<string, string[]>>({});
