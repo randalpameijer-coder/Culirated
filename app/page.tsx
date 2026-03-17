@@ -307,9 +307,9 @@ export default function Home() {
         .hero-score-card { position: absolute; top: 16px; left: 0; background: #fff; border-radius: 16px; padding: 16px 20px; box-shadow: 0 12px 32px rgba(30,22,9,0.15); border: 1px solid rgba(180,160,120,0.2); min-width: 165px; }
 
         .cats-grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 12px; }
-        .recipe-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+        .recipe-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
         .recipe-card { border-radius: 16px; overflow: hidden; background: #faf8f3; border: 1px solid rgba(180,160,120,0.2); cursor: pointer; }
-        .featured-card { grid-column: span 3; display: grid; grid-template-columns: 1fr 1fr; }
+        .featured-card { grid-column: span 2; display: grid; grid-template-columns: 1fr 1fr; }
         .recipe-img-wrap { position: relative; height: 220px; }
         .featured-card .recipe-img-wrap { height: 100%; min-height: 320px; }
 
@@ -505,7 +505,7 @@ export default function Home() {
           <div className="recipe-grid">
             {dbRecipes.length > 0 ? (
               dbRecipes.slice(0, 5).map((r, i) => (
-                <div key={r.id} className={i === 0 ? "recipe-card featured-card" : "recipe-card"} style={{ borderRadius: "16px", overflow: "hidden", background: "#faf8f3", border: "1px solid rgba(180,160,120,0.2)", cursor: "pointer", ...(i === 0 ? { gridColumn: "span 3", display: "grid", gridTemplateColumns: "1fr 1fr" } : {}) }}>
+                <div key={r.id} className={i === 0 ? "recipe-card featured-card" : "recipe-card"} style={{ borderRadius: "16px", overflow: "hidden", background: "#faf8f3", border: "1px solid rgba(180,160,120,0.2)", cursor: "pointer", ...(i === 0 ? { gridColumn: "span 2", display: "grid", gridTemplateColumns: "1fr 1fr" } : {}) }}>
                   <div style={{ position: "relative", height: i === 0 ? "100%" : "220px", minHeight: i === 0 ? "280px" : "auto", background: "#e8dfc8", overflow: "hidden" }}>
                     {r.image_url ? (
                       // eslint-disable-next-line @next/next/no-img-element
