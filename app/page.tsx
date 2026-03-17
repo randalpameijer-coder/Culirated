@@ -311,7 +311,7 @@ export default function Home() {
         .recipe-card { border-radius: 16px; overflow: hidden; background: #faf8f3; border: 1px solid rgba(180,160,120,0.2); cursor: pointer; display: flex; flex-direction: column; }
         .featured-card { grid-column: span 2; }
         .recipe-img-wrap { position: relative; aspect-ratio: 4/3; overflow: hidden; flex-shrink: 0; }
-        .featured-card .recipe-img-wrap { aspect-ratio: 16/6; }
+        .featured-card .recipe-img-wrap { aspect-ratio: 16/7; }
         .recipe-img-wrap img { width: 100%; height: 100%; object-fit: cover; object-position: center; display: block; }
         .recipe-card-title { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 
