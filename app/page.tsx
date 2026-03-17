@@ -504,8 +504,7 @@ export default function Home() {
           </div>
           <div className="recipe-grid">
             {dbRecipes.length > 0 ? (
-              <>
-                {dbRecipes.slice(0, 5).map((r) => (
+              dbRecipes.slice(0, 4).map((r) => (
                   <div key={r.id} className="recipe-card">
                     <div className="recipe-img-wrap">
                       {r.image_url ? (
@@ -537,22 +536,7 @@ export default function Home() {
                       </div>
                     </div>
                   </div>
-                ))}
-                {/* 6th slot: Submit CTA */}
-                <a href="/submit" style={{ textDecoration: "none" }}>
-                  <div style={{ borderRadius: "16px", background: "linear-gradient(135deg,#1e1609,#2d1f0a)", border: "1px solid rgba(180,160,120,0.15)", cursor: "pointer", display: "flex", flexDirection: "column", justifyContent: "space-between", padding: "32px", height: "100%", minHeight: "280px", boxSizing: "border-box" }}>
-                    <div>
-                      <div style={{ fontSize: "36px", marginBottom: "16px" }}>👨‍🍳</div>
-                      <div style={{ fontFamily: "monospace", fontSize: "11px", color: "#8a7355", letterSpacing: "1px", marginBottom: "12px" }}>✦ YOUR RECIPE HERE</div>
-                      <h3 style={{ fontFamily: "Georgia, serif", fontSize: "22px", fontWeight: "700", color: "#e8dfc8", lineHeight: 1.3, marginBottom: "12px" }}>Got a recipe worth sharing?</h3>
-                      <p style={{ fontFamily: "monospace", fontSize: "12px", color: "#8a7355", lineHeight: 1.6 }}>Submit it. AI checks it. Goes live within minutes.</p>
-                    </div>
-                    <div style={{ marginTop: "24px", display: "inline-flex", alignItems: "center", gap: "8px", background: "#3a7a32", borderRadius: "20px", padding: "10px 20px", fontFamily: "monospace", fontSize: "12px", color: "#e8f5e4", fontWeight: "500", width: "fit-content" }}>
-                      + Submit Recipe →
-                    </div>
-                  </div>
-                </a>
-              </>
+                ))
             ) : (
               <div style={{ gridColumn: "span 2", textAlign: "center", padding: "60px", color: "#8a7355", fontFamily: "monospace", fontSize: "13px" }}>
                 Loading recipes…
