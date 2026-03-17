@@ -311,7 +311,7 @@ export default function Home() {
         .recipe-card { border-radius: 16px; overflow: hidden; background: #faf8f3; border: 1px solid rgba(180,160,120,0.2); cursor: pointer; }
         .featured-card { grid-column: span 2; }
         .recipe-img-wrap { position: relative; height: 240px; overflow: hidden; }
-        .featured-card .recipe-img-wrap { height: 340px; }
+        .featured-img { height: 340px; }
         .recipe-img-wrap img { width: 100%; height: 100%; object-fit: cover; object-position: center; display: block; }
 
         .how-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; max-width: 1280px; margin: 0 auto; padding: 80px 48px; }
@@ -507,7 +507,7 @@ export default function Home() {
             {dbRecipes.length > 0 ? (
               dbRecipes.slice(0, 5).map((r, i) => (
                 <div key={r.id} className={i === 0 ? "recipe-card featured-card" : "recipe-card"} style={{ borderRadius: "16px", overflow: "hidden", background: "#faf8f3", border: "1px solid rgba(180,160,120,0.2)", cursor: "pointer", ...(i === 0 ? { gridColumn: "span 2" } : {}) }}>
-                  <div className="recipe-img-wrap" style={{ position: "relative", overflow: "hidden" }}>
+                  <div className={i === 0 ? "recipe-img-wrap featured-img" : "recipe-img-wrap"} style={{ position: "relative" }}>
                     {r.image_url ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={r.image_url} alt={r.title} style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center", display: "block" }} />
