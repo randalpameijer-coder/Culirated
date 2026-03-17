@@ -310,8 +310,8 @@ export default function Home() {
         .recipe-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
         .recipe-card { border-radius: 16px; overflow: hidden; background: #faf8f3; border: 1px solid rgba(180,160,120,0.2); cursor: pointer; }
         .featured-card { grid-column: span 2; }
-        .recipe-img-wrap { position: relative; height: 240px; }
-        .featured-card .recipe-img-wrap { height: 420px; }
+        .recipe-img-wrap { position: relative; height: 220px; overflow: hidden; }
+        .featured-card .recipe-img-wrap { height: 300px; }
 
         .how-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; max-width: 1280px; margin: 0 auto; padding: 80px 48px; }
         .cta-grid { display: grid; grid-template-columns: 1fr auto; gap: 48px; align-items: center; }
@@ -506,10 +506,10 @@ export default function Home() {
             {dbRecipes.length > 0 ? (
               dbRecipes.slice(0, 5).map((r, i) => (
                 <div key={r.id} className={i === 0 ? "recipe-card featured-card" : "recipe-card"} style={{ borderRadius: "16px", overflow: "hidden", background: "#faf8f3", border: "1px solid rgba(180,160,120,0.2)", cursor: "pointer", ...(i === 0 ? { gridColumn: "span 2" } : {}) }}>
-                  <div style={{ position: "relative", height: i === 0 ? "100%" : "220px", minHeight: i === 0 ? "280px" : "auto", background: "#e8dfc8", overflow: "hidden" }}>
+                  <div className="recipe-img-wrap" style={{ position: "relative", overflow: "hidden" }}>
                     {r.image_url ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={r.image_url} alt={r.title} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+                      <img src={r.image_url} alt={r.title} style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center", display: "block" }} />
                     ) : (
                       <div style={{ width: "100%", height: "100%", background: "linear-gradient(135deg,#2d5a27,#4a8c41)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                         <span style={{ fontSize: "48px" }}>🍽️</span>
