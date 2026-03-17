@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import { createClient } from "@supabase/supabase-js";
 
 const supabase = createClient(
@@ -8,45 +8,29 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
-const CATEGORY_FIELDS: Record<string, string> = {
-  cuisine: "ai_score->>cuisine",
-  course: "ai_score->>course",
-  diet: "ai_score->diet",
-  method: "ai_score->>method",
-  time: "ai_score->>time_category",
-  occasion: "ai_score->occasion",
-  ingredient: "ai_score->>main_ingredient",
-};
-
 const CATEGORY_LABELS: Record<string, string> = {
-  cuisine: "Cuisine",
-  course: "Course",
-  diet: "Diet",
-  method: "Method",
-  time: "Time",
-  occasion: "Occasion",
-  ingredient: "Ingredient",
+  cuisine: "Cuisine", course: "Course", diet: "Diet",
+  method: "Method", time: "Time", occasion: "Occasion", ingredient: "Ingredient",
 };
 
-export default function CategoryPage({ params }: { params: { type: string; value: string } }) {
+export default function CategoryPage({ params }: { params: Promise<{ type: string; value: string }> }) {
+  const { type, value } = use(params);
   const [recipes, setRecipes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
 
-  const type = params.type;
-  const value = decodeURIComponent(params.value).replace(/-/g, " ");
-  const valueFormatted = value.charAt(0).toUpperCase() + value.slice(1);
+  const valueFormatted = decodeURIComponent(value).replace(/-/g, " ").replace(/\b\w/g, l => l.toUpperCase());
   const PAGE_SIZE = 12;
 
-  useEffect(() => {
-    loadRecipes(0, true);
-  }, [type, value]);
+  useEffect(() => { loadRecipes(0, true); }, [type, value]);
 
   async function loadRecipes(pageNum: number, reset: boolean) {
     setLoading(true);
     const from = pageNum * PAGE_SIZE;
     const to = from + PAGE_SIZE - 1;
+    const isArray = type === "diet" || type === "occasion";
+    const fieldName = type === "ingredient" ? "main_ingredient" : type;
 
     let query = supabase
       .from("recipes")
@@ -55,16 +39,14 @@ export default function CategoryPage({ params }: { params: { type: string; value
       .range(from, to)
       .order("created_at", { ascending: false });
 
-    // Filter based on category type
-    const isArray = type === "diet" || type === "occasion";
     if (isArray) {
-      query = query.contains(`ai_score->${type}`, JSON.stringify([valueFormatted]));
+      query = query.contains(`ai_score->${fieldName}`, JSON.stringify([valueFormatted]));
     } else {
-      query = query.ilike(`ai_score->>${type === "ingredient" ? "main_ingredient" : type}`, valueFormatted);
+      query = query.ilike(`ai_score->>${fieldName}`, valueFormatted);
     }
 
-    const { data, error } = await query;
-    if (!error && data) {
+    const { data } = await query;
+    if (data) {
       setRecipes(reset ? data : prev => [...prev, ...data]);
       setHasMore(data.length === PAGE_SIZE);
     }
@@ -82,23 +64,17 @@ export default function CategoryPage({ params }: { params: { type: string; value
         .recipe-card:hover { transform: translateY(-4px); box-shadow: 0 16px 40px rgba(30,22,9,0.12); }
         .recipe-img { aspect-ratio: 4/3; overflow: hidden; flex-shrink: 0; position: relative; }
         .recipe-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
-        @media (max-width: 768px) {
-          .recipe-grid { grid-template-columns: 1fr 1fr; }
-        }
-        @media (max-width: 480px) {
-          .recipe-grid { grid-template-columns: 1fr; }
-        }
+        @media (max-width: 768px) { .recipe-grid { grid-template-columns: 1fr 1fr; } }
+        @media (max-width: 480px) { .recipe-grid { grid-template-columns: 1fr; } }
       `}</style>
 
       <div style={{ minHeight: "100vh", background: "#f5f0e8" }}>
-        {/* Top bar */}
         <div style={{ background: "#1e1609", padding: "8px 0", textAlign: "center" }}>
           <span style={{ color: "#c8b080", fontFamily: "monospace", fontSize: "11px", letterSpacing: "1px" }}>
             👨‍🍳 RECIPES BY PEOPLE · ✦ CURATED BY AI · ONLY THE BEST GOES LIVE
           </span>
         </div>
 
-        {/* Nav */}
         <nav style={{ background: "rgba(245,240,232,0.97)", backdropFilter: "blur(20px)", borderBottom: "1px solid rgba(180,160,120,0.25)", padding: "0 48px" }}>
           <div style={{ maxWidth: "1280px", margin: "0 auto", display: "flex", alignItems: "center", height: "70px", gap: "24px" }}>
             <a href="/" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: "10px" }}>
@@ -113,7 +89,6 @@ export default function CategoryPage({ params }: { params: { type: string; value
           </div>
         </nav>
 
-        {/* Header */}
         <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "56px 48px 40px" }}>
           <div style={{ fontFamily: "monospace", fontSize: "12px", color: "#8a7355", letterSpacing: "1px", marginBottom: "12px", textTransform: "uppercase" }}>
             {CATEGORY_LABELS[type] || type}
@@ -122,11 +97,10 @@ export default function CategoryPage({ params }: { params: { type: string; value
             {valueFormatted}
           </h1>
           <p style={{ fontFamily: "monospace", fontSize: "13px", color: "#8a7355" }}>
-            {recipes.length > 0 ? `${recipes.length}+ recipes · AI quality checked` : "Loading..."}
+            {loading ? "Loading..." : `${recipes.length}${hasMore ? "+" : ""} recipes · AI quality checked`}
           </p>
         </div>
 
-        {/* Grid */}
         <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "0 48px 80px" }}>
           {loading && recipes.length === 0 ? (
             <div style={{ textAlign: "center", padding: "80px", fontFamily: "monospace", color: "#8a7355" }}>Loading recipes…</div>
@@ -144,6 +118,7 @@ export default function CategoryPage({ params }: { params: { type: string; value
                   <div key={r.id} className="recipe-card">
                     <div className="recipe-img">
                       {r.image_url
+                        // eslint-disable-next-line @next/next/no-img-element
                         ? <img src={r.image_url} alt={r.title} />
                         : <div style={{ width: "100%", height: "100%", background: "linear-gradient(135deg,#2d5a27,#4a8c41)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "48px" }}>🍽️</div>
                       }
@@ -158,9 +133,9 @@ export default function CategoryPage({ params }: { params: { type: string; value
                           {r.ai_score?.diet?.[0] && <span style={{ fontSize: "11px", fontFamily: "monospace", color: "#4a7a3d", background: "rgba(74,122,61,0.1)", borderRadius: "20px", padding: "3px 10px" }}>{r.ai_score.diet[0]}</span>}
                         </div>
                         <h3 style={{ fontFamily: "Georgia, serif", fontSize: "18px", fontWeight: "700", color: "#1e1609", lineHeight: 1.25, marginBottom: "8px" }}>{r.title}</h3>
-                        {r.description && <p style={{ fontFamily: "Georgia, serif", fontSize: "13px", color: "#8a7355", lineHeight: 1.5, marginBottom: "12px", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{r.description}</p>}
+                        {r.description && <p style={{ fontFamily: "Georgia, serif", fontSize: "13px", color: "#8a7355", lineHeight: 1.5, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{r.description}</p>}
                       </div>
-                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: "12px", borderTop: "1px solid rgba(180,160,120,0.15)" }}>
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: "12px", borderTop: "1px solid rgba(180,160,120,0.15)", marginTop: "12px" }}>
                         <div style={{ display: "flex", gap: "12px" }}>
                           {r.prep_time && <span style={{ fontSize: "12px", color: "#8a7355", fontFamily: "monospace" }}>⏱ {r.prep_time} min</span>}
                           {r.calories && <span style={{ fontSize: "12px", color: "#8a7355", fontFamily: "monospace" }}>🔥 {r.calories} kcal</span>}
@@ -173,11 +148,8 @@ export default function CategoryPage({ params }: { params: { type: string; value
               </div>
               {hasMore && (
                 <div style={{ textAlign: "center", marginTop: "48px" }}>
-                  <button
-                    onClick={() => loadRecipes(page + 1, false)}
-                    disabled={loading}
-                    style={{ background: "transparent", color: "#1e1609", border: "1.5px solid rgba(30,22,9,0.25)", borderRadius: "28px", padding: "14px 40px", fontFamily: "monospace", fontSize: "13px", cursor: "pointer" }}
-                  >
+                  <button onClick={() => loadRecipes(page + 1, false)} disabled={loading}
+                    style={{ background: "transparent", color: "#1e1609", border: "1.5px solid rgba(30,22,9,0.25)", borderRadius: "28px", padding: "14px 40px", fontFamily: "monospace", fontSize: "13px", cursor: "pointer" }}>
                     {loading ? "Loading…" : "Load more recipes"}
                   </button>
                 </div>
