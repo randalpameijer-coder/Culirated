@@ -8,21 +8,14 @@ const OPENAI_KEY   = process.env.OPENAI_API_KEY;
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY;
 
-if (!OPENAI_KEY || !SUPABASE_URL || !SUPABASE_KEY) {
-  console.error("Missing env vars:");
-  console.error("OPENAI_API_KEY:", OPENAI_KEY ? "✅" : "❌");
-  console.error("NEXT_PUBLIC_SUPABASE_URL:", SUPABASE_URL ? "✅" : "❌");
-  console.error("SUPABASE_SERVICE_KEY:", SUPABASE_KEY ? "✅" : "❌");
-  process.exit(1);
-}
-
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
-async function generateImage(title, cuisine) {
-  const prompt = `Professional food photography of ${title}. ${cuisine ? cuisine + " cuisine." : ""} Shot on a clean white or natural wood surface, soft natural lighting, shallow depth of field, appetizing, magazine quality, high resolution. No text, no watermarks.`;
+async function generateAndUpload(recipe) {
+  const prompt = `Professional food photography of ${recipe.title}. ${recipe.ai_score?.cuisine ? recipe.ai_score.cuisine + " cuisine." : ""} Shot on a clean white or natural wood surface, soft natural lighting, shallow depth of field, appetizing, magazine quality, high resolution. No text, no watermarks.`;
 
+  // 1. Generate image from OpenAI
   const res = await fetch("https://api.openai.com/v1/images/generations", {
     method: "POST",
     headers: {
@@ -44,48 +37,70 @@ async function generateImage(title, cuisine) {
   }
 
   const data = await res.json();
-  return data.data[0].url;
+  const tempUrl = data.data[0].url;
+
+  // 2. Download the image
+  const imgRes = await fetch(tempUrl);
+  if (!imgRes.ok) throw new Error("Failed to download image");
+  const buffer = await imgRes.arrayBuffer();
+
+  // 3. Upload to Supabase Storage
+  const filename = `${recipe.id}.jpg`;
+  const { error: uploadError } = await supabase.storage
+    .from("recipe-images")
+    .upload(filename, buffer, {
+      contentType: "image/jpeg",
+      upsert: true,
+    });
+
+  if (uploadError) throw new Error("Upload error: " + uploadError.message);
+
+  // 4. Get permanent public URL
+  const { data: urlData } = supabase.storage
+    .from("recipe-images")
+    .getPublicUrl(filename);
+
+  const permanentUrl = urlData.publicUrl;
+
+  // 5. Save to database
+  const { error: updateError } = await supabase
+    .from("recipes")
+    .update({ image_url: permanentUrl })
+    .eq("id", recipe.id);
+
+  if (updateError) throw new Error("DB update error: " + updateError.message);
+
+  return permanentUrl;
 }
 
 async function main() {
-  // Fetch all recipes without image
+  const TEST_LIMIT = 5; // Test with 5 first
+
   const { data: recipes, error } = await supabase
     .from("recipes")
     .select("id, title, ai_score")
-    .is("image_url", null)
-    .order("created_at", { ascending: true });
+    .order("created_at", { ascending: false })
+    .limit(TEST_LIMIT);
 
   if (error) { console.error("Supabase error:", error); process.exit(1); }
 
-  console.log(`🎨 Generating images for ${recipes.length} recipes...\n`);
+  console.log(`🎨 Test: generating ${recipes.length} images with permanent storage...\n`);
 
   let done = 0;
-  let failed = 0;
-
   for (const recipe of recipes) {
-    process.stdout.write(`[${done + failed + 1}/${recipes.length}] ${recipe.title.slice(0, 50)}... `);
+    process.stdout.write(`[${done + 1}/${recipes.length}] ${recipe.title.slice(0, 50)}... `);
     try {
-      const imageUrl = await generateImage(recipe.title, recipe.ai_score?.cuisine);
-      
-      const { error: updateError } = await supabase
-        .from("recipes")
-        .update({ image_url: imageUrl })
-        .eq("id", recipe.id);
-
-      if (updateError) throw new Error(updateError.message);
-      
+      const url = await generateAndUpload(recipe);
       done++;
-      console.log(`✅`);
+      console.log(`✅ ${url.slice(0, 60)}...`);
     } catch (err) {
-      failed++;
       console.log(`❌ ${err.message}`);
     }
-
-    // Rate limit: max 5 images/min on standard tier
-    await sleep(12000); // 12 seconds between requests
+    if (done < recipes.length) await sleep(13000);
   }
 
-  console.log(`\n🎉 Done! ${done} images generated, ${failed} failed.`);
+  console.log(`\n✅ Done! ${done} images permanently stored.`);
+  console.log(`Check culirated.com to see them live.`);
 }
 
 main();
