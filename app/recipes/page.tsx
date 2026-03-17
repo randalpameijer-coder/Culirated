@@ -19,6 +19,21 @@ const FILTERS = [
   { key: "ingredient", label: "Ingredient", items: ["Chicken","Beef","Fish & seafood","Pasta","Rice","Eggs","Vegetables","Legumes","Pork"] },
 ];
 
+// Flat list of all chips with category color
+const CHIP_COLORS: Record<string, { bg: string; activeBg: string; icon: string }> = {
+  cuisine:    { bg: "rgba(139,90,43,0.08)",   activeBg: "#8b5a2b", icon: "🌍" },
+  course:     { bg: "rgba(45,90,39,0.08)",    activeBg: "#2d5a27", icon: "🍽️" },
+  diet:       { bg: "rgba(74,122,61,0.08)",   activeBg: "#4a7a3d", icon: "🌿" },
+  method:     { bg: "rgba(180,80,20,0.08)",   activeBg: "#b45014", icon: "🔥" },
+  time:       { bg: "rgba(30,22,9,0.06)",     activeBg: "#1e1609", icon: "⏱️" },
+  occasion:   { bg: "rgba(100,60,140,0.08)",  activeBg: "#643c8c", icon: "🎉" },
+  ingredient: { bg: "rgba(160,40,40,0.08)",   activeBg: "#a02828", icon: "🥩" },
+};
+
+const ALL_CHIPS = FILTERS.flatMap(f =>
+  f.items.map(item => ({ key: f.key, label: item, ...CHIP_COLORS[f.key] }))
+);
+
 const PAGE_SIZE = 12;
 
 export default function RecipesPage() {
@@ -143,17 +158,44 @@ function RecipesContent() {
             )}
           </div>
 
-          <div style={{ background: "#faf8f3", borderRadius: "16px", padding: "24px", marginBottom: "32px", border: "1px solid rgba(180,160,120,0.2)" }}>
-            {FILTERS.map(f => (
-              <div key={f.key} style={{ marginBottom: "16px" }}>
-                <div style={{ fontFamily: "monospace", fontSize: "11px", color: "#8a7355", letterSpacing: "0.5px", marginBottom: "8px", textTransform: "uppercase" }}>{f.label}</div>
-                <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                  {f.items.map(item => (
-                    <button key={item} className={`chip ${(active[f.key] || []).includes(item) ? "active" : ""}`} onClick={() => toggleFilter(f.key, item)}>{item}</button>
-                  ))}
-                </div>
-              </div>
-            ))}
+          {/* Active filter summary */}
+          {activeCount > 0 && (
+            <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginBottom: "16px", alignItems: "center" }}>
+              <span style={{ fontFamily: "monospace", fontSize: "11px", color: "#8a7355" }}>Active:</span>
+              {Object.entries(active).flatMap(([key, vals]) =>
+                vals.map(v => (
+                  <button key={`${key}-${v}`} onClick={() => toggleFilter(key, v)}
+                    style={{ display: "inline-flex", alignItems: "center", gap: "5px", padding: "4px 12px", borderRadius: "20px", fontFamily: "monospace", fontSize: "12px", cursor: "pointer", background: CHIP_COLORS[key]?.activeBg || "#1e1609", color: "#fff", border: "none" }}>
+                    {v} ✕
+                  </button>
+                ))
+              )}
+              <button onClick={clearAll} style={{ fontFamily: "monospace", fontSize: "11px", color: "#8b3020", background: "none", border: "none", cursor: "pointer", textDecoration: "underline" }}>Clear all</button>
+            </div>
+          )}
+
+          {/* Flat chip cloud */}
+          <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginBottom: "32px" }}>
+            {ALL_CHIPS.map(chip => {
+              const isActive = (active[chip.key] || []).includes(chip.label);
+              return (
+                <button key={`${chip.key}-${chip.label}`}
+                  onClick={() => toggleFilter(chip.key, chip.label)}
+                  style={{
+                    display: "inline-flex", alignItems: "center", gap: "5px",
+                    padding: "7px 14px", borderRadius: "20px", cursor: "pointer",
+                    fontFamily: "monospace", fontSize: "12px", whiteSpace: "nowrap",
+                    border: "none", transition: "all 0.15s",
+                    background: isActive ? chip.activeBg : chip.bg,
+                    color: isActive ? "#fff" : "#4a3820",
+                    fontWeight: isActive ? "500" : "400",
+                    transform: isActive ? "scale(1.03)" : "scale(1)",
+                  }}>
+                  <span style={{ fontSize: "11px" }}>{chip.icon}</span>
+                  {chip.label}
+                </button>
+              );
+            })}
           </div>
         </div>
 
