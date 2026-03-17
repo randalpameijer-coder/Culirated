@@ -403,7 +403,7 @@ export default function Home() {
                 {activeNav === cat.label && (
                   <div style={{ position: "absolute", top: "calc(100% + 4px)", left: "0", background: "#fff", border: "1px solid rgba(180,160,120,0.2)", borderRadius: "12px", boxShadow: "0 12px 40px rgba(30,22,9,0.15)", padding: "8px", minWidth: "180px", zIndex: 300, display: "grid", gridTemplateColumns: cat.items.length > 6 ? "1fr 1fr" : "1fr", gap: "2px" }}>
                     {cat.items.map((item) => (
-                      <a key={item} href={`/recipes/${cat.label.toLowerCase()}/${item.toLowerCase().replace(/ /g, "-")}`}
+                      <a key={item} href={`/recipes?${cat.label.toLowerCase()}=${encodeURIComponent(item)}`}
                         style={{ display: "block", padding: "8px 12px", fontFamily: "monospace", fontSize: "12px", color: "#4a3820", textDecoration: "none", borderRadius: "8px", whiteSpace: "nowrap", transition: "background 0.15s" }}
                         onMouseEnter={e => (e.currentTarget.style.background = "rgba(74,122,61,0.08)")}
                         onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
