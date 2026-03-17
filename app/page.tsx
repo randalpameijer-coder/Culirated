@@ -280,7 +280,7 @@ export default function Home() {
       const orderCol = activeFilter === 1 ? "ai_score->>score" : "created_at";
       const { data } = await supabase
         .from("recipes")
-        .select("id, title, description, prep_time, calories, difficulty, ai_score, status")
+        .select("id, title, description, prep_time, calories, difficulty, ai_score, status, image_url")
         .eq("status", "approved")
         .order("created_at", { ascending: false })
         .limit(10);
@@ -506,8 +506,15 @@ export default function Home() {
             {dbRecipes.length > 0 ? (
               dbRecipes.slice(0, 5).map((r, i) => (
                 <div key={r.id} className={i === 0 ? "recipe-card featured-card" : "recipe-card"} style={{ borderRadius: "16px", overflow: "hidden", background: "#faf8f3", border: "1px solid rgba(180,160,120,0.2)", cursor: "pointer", ...(i === 0 ? { gridColumn: "span 2", display: "grid", gridTemplateColumns: "1fr 1fr" } : {}) }}>
-                  <div style={{ position: "relative", height: i === 0 ? "100%" : "220px", minHeight: i === 0 ? "280px" : "auto", background: "linear-gradient(135deg,#2d5a27,#4a8c41)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <span style={{ fontSize: "48px" }}>🍽️</span>
+                  <div style={{ position: "relative", height: i === 0 ? "100%" : "220px", minHeight: i === 0 ? "280px" : "auto", background: "#e8dfc8", overflow: "hidden" }}>
+                    {r.image_url ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={r.image_url} alt={r.title} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+                    ) : (
+                      <div style={{ width: "100%", height: "100%", background: "linear-gradient(135deg,#2d5a27,#4a8c41)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        <span style={{ fontSize: "48px" }}>🍽️</span>
+                      </div>
+                    )}
                     <div style={{ position: "absolute", top: "12px", right: "12px", display: "flex", alignItems: "center", gap: "5px", background: "linear-gradient(135deg,#2d5a27,#4a8c41)", borderRadius: "20px", padding: "4px 10px", fontSize: "11px", fontFamily: "monospace", color: "#e8f5e6" }}>
                       ✦ AI {r.ai_score?.score || 90}/100
                     </div>
