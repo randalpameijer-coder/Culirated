@@ -308,11 +308,12 @@ export default function Home() {
 
         .cats-grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 12px; }
         .recipe-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .recipe-card { border-radius: 16px; overflow: hidden; background: #faf8f3; border: 1px solid rgba(180,160,120,0.2); cursor: pointer; }
+        .recipe-card { border-radius: 16px; overflow: hidden; background: #faf8f3; border: 1px solid rgba(180,160,120,0.2); cursor: pointer; display: flex; flex-direction: column; }
         .featured-card { grid-column: span 2; }
-        .recipe-img-wrap { position: relative; height: 240px; overflow: hidden; }
-        .featured-img { height: 340px; }
+        .recipe-img-wrap { position: relative; aspect-ratio: 4/3; overflow: hidden; flex-shrink: 0; }
+        .featured-card .recipe-img-wrap { aspect-ratio: 16/6; }
         .recipe-img-wrap img { width: 100%; height: 100%; object-fit: cover; object-position: center; display: block; }
+        .recipe-card-title { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 
         .how-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; max-width: 1280px; margin: 0 auto; padding: 80px 48px; }
         .cta-grid { display: grid; grid-template-columns: 1fr auto; gap: 48px; align-items: center; }
@@ -526,7 +527,7 @@ export default function Home() {
                         {r.ai_score?.cuisine && <span style={{ fontSize: "11px", fontFamily: "monospace", color: "#8a7355", background: "rgba(140,115,80,0.12)", borderRadius: "20px", padding: "3px 10px" }}>{r.ai_score.cuisine}</span>}
                         {r.ai_score?.diet?.[0] && <span style={{ fontSize: "11px", fontFamily: "monospace", color: "#4a7a3d", background: "rgba(74,122,61,0.1)", borderRadius: "20px", padding: "3px 10px" }}>{r.ai_score.diet[0]}</span>}
                       </div>
-                      <h3 style={{ fontFamily: "Georgia, serif", fontSize: i === 0 ? "24px" : "18px", fontWeight: "700", color: "#1e1609", lineHeight: 1.25, marginBottom: "8px" }}>{r.title}</h3>
+                      <h3 className="recipe-card-title" style={{ fontFamily: "Georgia, serif", fontSize: i === 0 ? "24px" : "18px", fontWeight: "700", color: "#1e1609", lineHeight: 1.25, marginBottom: "8px" }}>{r.title}</h3>
                       {i === 0 && r.description && <p style={{ color: "#8a7355", fontSize: "14px", lineHeight: 1.6, marginBottom: "16px" }}>{r.description}</p>}
                     </div>
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: "12px", borderTop: "1px solid rgba(180,160,120,0.15)" }}>
