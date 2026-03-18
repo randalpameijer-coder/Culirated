@@ -435,7 +435,7 @@ export default function Home() {
               <button onClick={() => setLang(localLang)} style={{ flexShrink: 0, background: "rgba(30,22,9,0.05)", border: "1px solid rgba(180,160,120,0.3)", borderRadius: "20px", padding: "7px 14px", cursor: "pointer", fontFamily: "monospace", fontSize: "12px", color: "#4a3820", whiteSpace: "nowrap" }}>{LOCAL_NAMES[localLang]}</button>
             )}
             <div style={{ position: "relative", flexShrink: 0 }}>
-              <button onClick={() => setShowShare(!showShare)} style={{ background: "rgba(30,22,9,0.05)", border: "1px solid rgba(180,160,120,0.3)", borderRadius: "20px", padding: "10px 16px", cursor: "pointer", fontFamily: "monospace", fontSize: "12px", color: "#4a3820", whiteSpace: "nowrap" }}>
+              <button onClick={() => setShowShare(!showShare)} style={{ background: "#e8581a", border: "none", borderRadius: "20px", padding: "10px 16px", cursor: "pointer", fontFamily: "monospace", fontSize: "12px", color: "#fff", whiteSpace: "nowrap", fontWeight: "500" }}>
                 ↗ {isNL ? "Delen" : isDE ? "Teilen" : isFR ? "Partager" : "Share"}
               </button>
               {showShare && (
