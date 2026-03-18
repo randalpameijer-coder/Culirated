@@ -79,6 +79,7 @@ export async function POST(req: NextRequest) {
       status: "approved",
       image_url: imageUrl,
       ai_score: body.ai_score,
+      author_name: name,
     }).select("id").single();
     if (error) return NextResponse.json({ error: "Failed to save" }, { status: 500 });
 

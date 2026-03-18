@@ -96,12 +96,20 @@ export default function RecipePage({ params }: { params: Promise<{ id: string }>
         {/* Content */}
         <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "48px 48px 80px" }}>
           {/* Meta strip */}
-          <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginBottom: "40px" }}>
+          <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginBottom: "16px" }}>
             {cuisine && <span style={{ fontFamily: "monospace", fontSize: "12px", color: "#8a7355", background: "rgba(140,115,80,0.12)", borderRadius: "20px", padding: "5px 14px" }}>{cuisine}</span>}
             {course && <span style={{ fontFamily: "monospace", fontSize: "12px", color: "#4a7a3d", background: "rgba(74,122,61,0.1)", borderRadius: "20px", padding: "5px 14px" }}>{course}</span>}
             {method && <span style={{ fontFamily: "monospace", fontSize: "12px", color: "#8a7355", background: "rgba(140,115,80,0.12)", borderRadius: "20px", padding: "5px 14px" }}>{method}</span>}
             {diet.map((d: string) => <span key={d} style={{ fontFamily: "monospace", fontSize: "12px", color: "#2d5a27", background: "rgba(45,90,39,0.1)", borderRadius: "20px", padding: "5px 14px" }}>{d}</span>)}
           </div>
+
+          {/* Author */}
+          {recipe.author_name && (
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "40px" }}>
+              <div style={{ width: "28px", height: "28px", borderRadius: "50%", background: "linear-gradient(135deg,#2d5a27,#6aa86e)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "13px" }}>👨‍🍳</div>
+              <span style={{ fontFamily: "monospace", fontSize: "12px", color: "#8a7355" }}>Recipe by <strong style={{ color: "#1e1609" }}>{recipe.author_name}</strong></span>
+            </div>
+          )}
 
           {/* Stats */}
           <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "16px", marginBottom: "48px" }}>

@@ -275,6 +275,18 @@ export default function Home() {
   const t = T[lang];
   const isEN = lang === "en";
 
+  // Close dropdown on click outside
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      const nav = document.getElementById("main-nav");
+      if (nav && !nav.contains(e.target as Node)) {
+        setActiveNav("");
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
+
   useEffect(() => {
     async function fetchRecipes() {
       const orderCol = activeFilter === 1 ? "ai_score->>score" : "created_at";
@@ -369,7 +381,7 @@ export default function Home() {
         </div>
 
         {/* Nav */}
-        <nav style={{ background: "rgba(245,240,232,0.97)", backdropFilter: "blur(20px)", borderBottom: "1px solid rgba(180,160,120,0.25)", position: "sticky", top: 0, zIndex: 100 }}>
+        <nav id="main-nav" style={{ background: "rgba(245,240,232,0.97)", backdropFilter: "blur(20px)", borderBottom: "1px solid rgba(180,160,120,0.25)", position: "sticky", top: 0, zIndex: 100 }}>
           {/* Top row: logo + search + lang + submit */}
           <div className="nav-inner" style={{ borderBottom: "1px solid rgba(180,160,120,0.12)" }}>
             <a href="/" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: "10px", flexShrink: 0 }}>
