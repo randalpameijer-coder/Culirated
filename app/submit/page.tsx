@@ -13,6 +13,31 @@ export default function SubmitPage() {
   const [useImprovedTitle, setUseImprovedTitle] = useState(true);
   const [customTitle, setCustomTitle] = useState("");
 
+  const lang = typeof navigator !== "undefined" ? navigator.language : "en";
+  const isNL = lang.startsWith("nl");
+  const isDE = lang.startsWith("de");
+  const isFR = lang.startsWith("fr");
+
+  const ui = {
+    approved: isNL ? "Ziet er goed uit!" : isDE ? "Sieht gut aus!" : isFR ? "C'est bon!" : "Looks good!",
+    notApproved: isNL ? "Al aanwezig." : isDE ? "Bereits vorhanden." : isFR ? "Déjà présent." : "Already exists.",
+    notApprovedGeneral: isNL ? "Nog niet goedgekeurd." : isDE ? "Noch nicht genehmigt." : isFR ? "Pas encore approuvé." : "Not approved yet.",
+    qualityCheck: isNL ? "Kwaliteitscheck" : isDE ? "Qualitätsprüfung" : isFR ? "Contrôle qualité" : "Quality check",
+    titleSuggestion: isNL ? "✦ Titelvoorstel" : isDE ? "✦ Titelvorschlag" : isFR ? "✦ Suggestion de titre" : "✦ Title suggestion",
+    titleQ: isNL ? "AI stelt een beter vindbare titel voor. Welke verkies je?" : isDE ? "KI schlägt einen besser auffindbaren Titel vor." : isFR ? "L'IA suggère un titre plus facile à trouver." : "AI suggests a more findable title. Which do you prefer?",
+    keepMine: isNL ? "Mijn versie houden" : isDE ? "Meine behalten" : isFR ? "Garder la mienne" : "Keep mine",
+    correctionApplied: isNL ? "⚠️ Correctie toegepast" : isDE ? "⚠️ Korrektur angewendet" : isFR ? "⚠️ Correction appliquée" : "⚠️ Correction applied",
+    whatNext: isNL ? "WAT GEBEURT ER NU" : isDE ? "WAS PASSIERT ALS NÄCHSTES" : isFR ? "CE QUI SE PASSE ENSUITE" : "WHAT HAPPENS NEXT",
+    whatNextText: isNL ? "Jouw recept gaat meteen live. Een professionele foodfoto wordt automatisch gegenereerd. Het recept blijft van jou." : isDE ? "Dein Rezept wird sofort veröffentlicht. Ein professionelles Foodfoto wird automatisch generiert." : isFR ? "Votre recette est publiée immédiatement avec une photo générée automatiquement." : "Your recipe goes live immediately with a professional food photo generated automatically.",
+    publish: isNL ? "✦ Publiceer mijn recept →" : isDE ? "✦ Rezept veröffentlichen →" : isFR ? "✦ Publier ma recette →" : "✦ Publish my recipe →",
+    adjust: isNL ? "← Aanpassen en opnieuw insturen" : isDE ? "← Anpassen und erneut einreichen" : isFR ? "← Ajuster et resoumettre" : "← Adjust and resubmit",
+    publishing: isNL ? "Recept publiceren…\nfoto genereren" : isDE ? "Rezept veröffentlichen…\nFoto generieren" : isFR ? "Publication de la recette…\ngénération de la photo" : "Publishing your recipe…\ngenerating photo",
+    live: isNL ? "Jouw recept staat live!" : isDE ? "Dein Rezept ist live!" : isFR ? "Votre recette est en ligne!" : "Your recipe is live!",
+    liveText: isNL ? "Het staat nu op Culirated — met een verse foodfoto en AI-kwaliteitsbadge." : isDE ? "Es ist jetzt auf Culirated — mit einem frischen Foodfoto und KI-Qualitätsabzeichen." : isFR ? "Il est maintenant sur Culirated — avec une photo et un badge qualité IA." : "It's now visible on Culirated — with a fresh food photo and AI quality badge.",
+    view: isNL ? "Bekijk mijn recept →" : isDE ? "Mein Rezept ansehen →" : isFR ? "Voir ma recette →" : "View my recipe →",
+    submitAnother: isNL ? "Nog een recept insturen" : isDE ? "Ein weiteres Rezept einreichen" : isFR ? "Soumettre une autre recette" : "Submit another",
+  };
+
   async function handleSubmit() {
     if (!name.trim() || !recipe.trim()) return;
     setStep("analysing");
@@ -128,7 +153,7 @@ export default function SubmitPage() {
                 <div style={{ fontSize: "40px" }}>{result.approved ? "🟢" : "🔴"}</div>
                 <div>
                   <div style={{ fontFamily: "Georgia, serif", fontSize: "24px", fontWeight: "700", color: result.approved ? "#2d5a27" : "#8b3020" }}>
-                    {result.approved ? "Looks good!" : "Not approved yet."}
+                    {result.approved ? ui.approved : (result.duplicate ? ui.notApproved : ui.notApprovedGeneral)}
                   </div>
                   {result.score && <div style={{ fontFamily: "monospace", fontSize: "12px", color: "#8a7355", marginTop: "4px" }}>AI Score: {result.score}/100</div>}
                 </div>
@@ -137,7 +162,7 @@ export default function SubmitPage() {
 
               {result.criteria && (
                 <div className="section">
-                  <div className="section-title">Quality check</div>
+                  <div className="section-title">{ui.qualityCheck}</div>
                   {result.criteria.map((c: any) => (
                     <div key={c.name} style={{ display: "flex", gap: "10px", marginBottom: "10px", alignItems: "flex-start" }}>
                       <span style={{ fontSize: "14px", flexShrink: 0 }}>{c.passed ? "✅" : "❌"}</span>
@@ -151,32 +176,32 @@ export default function SubmitPage() {
                 <>
                   {result.suggestions?.title?.changed && (
                     <div className="section">
-                      <div className="section-title">✦ Title suggestion</div>
-                      <p style={{ fontFamily: "monospace", fontSize: "11px", color: "#8a7355", marginBottom: "12px" }}>AI suggests a more findable title. Which do you prefer?</p>
+                      <div className="section-title">{ui.titleSuggestion}</div>
+                      <p style={{ fontFamily: "monospace", fontSize: "11px", color: "#8a7355", marginBottom: "12px" }}>{ui.titleQ}</p>
                       <div className="toggle-row">
                         <button className={`toggle-btn ${useImprovedTitle ? "active" : ""}`} onClick={() => setUseImprovedTitle(true)}>✦ {result.suggestions.title.improved}</button>
-                        <button className={`toggle-btn ${!useImprovedTitle ? "active" : ""}`} onClick={() => setUseImprovedTitle(false)}>Keep: {result.suggestions.title.original}</button>
+                        <button className={`toggle-btn ${!useImprovedTitle ? "active" : ""}`} onClick={() => setUseImprovedTitle(false)}>{ui.keepMine}: {result.suggestions.title.original}</button>
                       </div>
                     </div>
                   )}
 
                   {result.corrections?.ratios_fixed && (
                     <div className="section">
-                      <div className="section-title">⚠️ Correction applied</div>
+                      <div className="section-title">{ui.correctionApplied}</div>
                       <p style={{ fontFamily: "Georgia, serif", fontSize: "14px", color: "#4a3820", lineHeight: 1.6 }}>{result.corrections.what_was_fixed}</p>
                     </div>
                   )}
 
                   <div style={{ background: "rgba(74,122,61,0.06)", borderRadius: "14px", padding: "20px 24px", marginBottom: "24px", border: "1px solid rgba(74,122,61,0.15)" }}>
-                    <div style={{ fontFamily: "monospace", fontSize: "11px", color: "#2d5a27", letterSpacing: "1px", marginBottom: "8px" }}>WHAT HAPPENS NEXT</div>
-                    <p style={{ fontFamily: "Georgia, serif", fontSize: "14px", color: "#4a3820", lineHeight: 1.65 }}>Your recipe goes live immediately with a professional food photo generated automatically. The recipe stays yours.</p>
+                    <div style={{ fontFamily: "monospace", fontSize: "11px", color: "#2d5a27", letterSpacing: "1px", marginBottom: "8px" }}>{ui.whatNext}</div>
+                    <p style={{ fontFamily: "Georgia, serif", fontSize: "14px", color: "#4a3820", lineHeight: 1.65 }}>{ui.whatNextText}</p>
                   </div>
-                  <button className="btn-primary" onClick={handleConfirm}>✦ Publish my recipe →</button>
+                  <button className="btn-primary" onClick={handleConfirm}>{ui.publish}</button>
                 </>
               )}
 
               {!result.approved && (
-                <button className="btn-secondary" onClick={() => setStep("form")} style={{ width: "100%", marginTop: "8px" }}>← Adjust and resubmit</button>
+                <button className="btn-secondary" onClick={() => setStep("form")} style={{ width: "100%", marginTop: "8px" }}>{ui.adjust}</button>
               )}
             </>
           )}
@@ -184,22 +209,20 @@ export default function SubmitPage() {
           {step === "saving" && (
             <div style={{ textAlign: "center", padding: "60px 0" }}>
               <div className="loading-icon">🍃</div>
-              <p style={{ fontFamily: "monospace", fontSize: "13px", color: "#8a7355", marginTop: "20px" }}>Publishing your recipe…<br />generating photo</p>
+              <p style={{ fontFamily: "monospace", fontSize: "13px", color: "#8a7355", marginTop: "20px", whiteSpace: "pre-line" }}>{ui.publishing}</p>
             </div>
           )}
 
           {step === "done" && (
             <div style={{ textAlign: "center", padding: "40px 0" }}>
               <div style={{ fontSize: "52px", marginBottom: "20px" }}>🎉</div>
-              <h2 style={{ fontFamily: "Georgia, serif", fontSize: "28px", fontWeight: "700", color: "#1e1609", marginBottom: "12px" }}>Your recipe is live!</h2>
-              <p style={{ fontFamily: "Georgia, serif", fontSize: "15px", color: "#8a7355", lineHeight: 1.6, marginBottom: "32px" }}>
-                It's now visible on Culirated — with a fresh food photo and AI quality badge.
-              </p>
+              <h2 style={{ fontFamily: "Georgia, serif", fontSize: "28px", fontWeight: "700", color: "#1e1609", marginBottom: "12px" }}>{ui.live}</h2>
+              <p style={{ fontFamily: "Georgia, serif", fontSize: "15px", color: "#8a7355", lineHeight: 1.6, marginBottom: "32px" }}>{ui.liveText}</p>
               <div style={{ display: "flex", gap: "12px", justifyContent: "center", flexWrap: "wrap" }}>
                 <a href={`/recipe/${savedId}`} style={{ textDecoration: "none" }}>
-                  <button className="btn-primary" style={{ width: "auto", padding: "12px 24px" }}>View my recipe →</button>
+                  <button className="btn-primary" style={{ width: "auto", padding: "12px 24px" }}>{ui.view}</button>
                 </a>
-                <button className="btn-secondary" onClick={() => { setStep("form"); setName(""); setRecipe(""); setResult(null); }}>Submit another</button>
+                <button className="btn-secondary" onClick={() => { setStep("form"); setName(""); setRecipe(""); setResult(null); }}>{ui.submitAnother}</button>
               </div>
             </div>
           )}

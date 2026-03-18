@@ -168,10 +168,10 @@ Return ONLY valid JSON, no markdown:
     if (result.duplicate) {
       result.approved = false;
       const dupMsg: Record<string, string> = {
-        Dutch: `Jouw recept lijkt sterk op "${result.duplicate_of}" dat al op Culirated staat. We houden van variaties — maar dit ligt te dicht bij wat we al hebben. Geef het jouw eigen draai met andere technieken, ingrediënten of een uniek verhaal.`,
-        German: `Dein Rezept ähnelt sehr "${result.duplicate_of}", das bereits auf Culirated steht. Wir lieben Variationen — aber dieses ist zu ähnlich zu dem, was wir bereits haben. Verleihe ihm deine eigene Note.`,
-        French: `Votre recette ressemble beaucoup à "${result.duplicate_of}" déjà présente sur Culirated. Nous adorons les variantes — mais celle-ci est trop proche. Donnez-lui votre propre touche.`,
-        English: `Your recipe is very similar to "${result.duplicate_of}" which is already on Culirated. We love variations — but this one is too close to what we already have. Try giving it your own twist with different techniques or a unique story.`,
+        Dutch: `Dit recept staat al op Culirated. Heb je iets anders te delen?`,
+        German: `Dieses Rezept existiert bereits auf Culirated. Hast du etwas anderes anzubieten?`,
+        French: `Cette recette existe déjà sur Culirated. Avez-vous quelque chose d'autre à partager?`,
+        English: `This recipe already exists on Culirated. Do you have something else to share?`,
       };
       result.feedback = dupMsg[language] || dupMsg.English;
       if (!result.criteria) result.criteria = [];
