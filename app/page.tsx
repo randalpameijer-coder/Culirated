@@ -373,43 +373,52 @@ export default function Home() {
         .nav-inner { max-width: 1280px; margin: 0 auto; display: flex; align-items: center; height: 70px; gap: 24px; padding: 0 48px; }
 
         @media (max-width: 768px) {
-          .hero-grid { grid-template-columns: 1fr; padding: 32px 20px 40px; gap: 40px; }
-          .hero-images { display: none; }
-          h1 { font-size: 40px !important; letter-spacing: -1px !important; }
-          .human-ai-strip { flex-direction: column !important; }
-          .human-ai-strip > div { border-right: none !important; border-bottom: 1px solid rgba(180,160,120,0.2); }
-          .human-ai-strip > div:last-child { border-bottom: none; }
-          .stats-row { gap: 24px !important; }
-
-          .cats-grid { grid-template-columns: repeat(4, 1fr); }
-          .recipe-grid { grid-template-columns: 1fr; }
-          .featured-card { grid-column: span 1; display: block; }
-          .featured-card .recipe-img-wrap { height: 220px; }
-
-          .how-grid { grid-template-columns: 1fr; gap: 40px; padding: 48px 20px; }
-          h2.how-h2 { font-size: 36px !important; }
-          .how-cards { flex-direction: column !important; }
-
-          .cta-grid { grid-template-columns: 1fr; gap: 24px; }
-          .cta-inner { padding: 36px 24px !important; }
-          h2.cta-h2 { font-size: 32px !important; }
-
-          .nav-inner { padding: 0 16px; gap: 12px; height: 60px; }
+          /* Nav */
+          .nav-inner { padding: 0 16px; gap: 10px; height: 60px; }
           .nav-links { display: none; }
           .nav-search { display: none; }
 
-          .section-pad { padding: 0 20px 60px !important; }
-          .cats-pad { padding: 32px 20px !important; }
-          .footer-inner { flex-direction: column; gap: 16px; padding: 32px 20px !important; }
-          .footer-links { flex-wrap: wrap; gap: 16px !important; }
+          /* Hero */
+          .hero-grid { grid-template-columns: 1fr; padding: 28px 16px 36px; gap: 32px; }
+          .hero-images { display: none; }
+          h1 { font-size: 36px !important; letter-spacing: -1px !important; }
+          .human-ai-strip { flex-direction: column !important; }
+          .human-ai-strip > div { border-right: none !important; border-bottom: 1px solid rgba(180,160,120,0.2); }
+          .human-ai-strip > div:last-child { border-bottom: none; }
+          .stats-row { gap: 20px !important; flex-wrap: wrap !important; }
+
+          /* Categories */
+          .cats-grid { grid-template-columns: repeat(4, 1fr); gap: 8px; }
+          .cats-pad { padding: 28px 16px !important; }
+
+          /* Recipe grid */
+          .recipe-grid { grid-template-columns: 1fr; }
+          .featured-card { grid-column: span 1; display: block; }
+          .featured-card .recipe-img-wrap { height: 220px; }
+          .section-pad { padding: 0 16px 48px !important; }
+
+          /* How it works */
+          .how-grid { grid-template-columns: 1fr; gap: 32px; padding: 40px 16px; }
+          h2.how-h2 { font-size: 32px !important; }
+          .how-cards { flex-direction: column !important; }
+
+          /* CTA */
+          .cta-grid { grid-template-columns: 1fr; gap: 20px; }
+          .cta-inner { padding: 32px 20px !important; border-radius: 20px !important; }
+          h2.cta-h2 { font-size: 28px !important; }
+
+          /* Footer */
+          .footer-inner { flex-direction: column; gap: 16px; padding: 28px 16px !important; }
+          .footer-links { flex-wrap: wrap; gap: 12px !important; }
         }
 
-          @media (max-width: 480px) {
+        @media (max-width: 480px) {
           .cats-grid { grid-template-columns: repeat(2, 1fr); }
-          h1 { font-size: 34px !important; }
-          .submit-btn span { display: none; }
-          .submit-btn { padding: 10px 12px !important; }
+          h1 { font-size: 30px !important; }
+          .submit-btn { font-size: 0 !important; padding: 10px 14px !important; }
+          .submit-btn::after { content: "+"; font-size: 18px; font-family: monospace; }
           .nav-inner { gap: 8px !important; }
+          .stats-row > div { flex: 1 1 40%; }
         }
       `}</style>
 
