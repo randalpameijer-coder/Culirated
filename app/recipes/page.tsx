@@ -213,7 +213,8 @@ function RecipesContent() {
             <>
               <div className="recipe-grid">
                 {recipes.map(r => (
-                  <div key={r.id} className="recipe-card">
+                  <a key={r.id} href={`/recipe/${r.id}`} style={{ textDecoration: "none" }}>
+                  <div className="recipe-card">
                     <div className="recipe-img">
                       {r.image_url
                         // eslint-disable-next-line @next/next/no-img-element
@@ -242,6 +243,7 @@ function RecipesContent() {
                       </div>
                     </div>
                   </div>
+                  </a>
                 ))}
               </div>
               {hasMore && (

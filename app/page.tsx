@@ -505,7 +505,8 @@ export default function Home() {
           <div className="recipe-grid">
             {dbRecipes.length > 0 ? (
               dbRecipes.slice(0, 4).map((r) => (
-                  <div key={r.id} className="recipe-card">
+                  <a key={r.id} href={`/recipe/${r.id}`} style={{ textDecoration: "none" }}>
+                  <div className="recipe-card">
                     <div className="recipe-img-wrap">
                       {r.image_url ? (
                         // eslint-disable-next-line @next/next/no-img-element
@@ -536,6 +537,7 @@ export default function Home() {
                       </div>
                     </div>
                   </div>
+                  </a>
                 ))
             ) : (
               <div style={{ gridColumn: "span 2", textAlign: "center", padding: "60px", color: "#8a7355", fontFamily: "monospace", fontSize: "13px" }}>
