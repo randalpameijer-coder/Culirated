@@ -20,7 +20,7 @@ export default function SubmitPage() {
       const res = await fetch("/api/submit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, recipe }),
+        body: JSON.stringify({ name, recipe, lang: navigator.language }),
       });
       const data = await res.json();
       setResult(data);
@@ -44,7 +44,7 @@ export default function SubmitPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          name, recipe, confirm: true,
+          name, recipe, confirm: true, lang: navigator.language,
           confirmedTitle: finalTitle,
           confirmedDescription: result.suggestions?.description?.improved || "",
           confirmedIngredients: result.corrections?.ingredients || [],

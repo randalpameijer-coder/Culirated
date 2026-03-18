@@ -60,7 +60,8 @@ async function generateImage(title: string, cuisine: string): Promise<string | n
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
-  const { name, recipe, confirm } = body;
+  const { name, recipe, confirm, lang } = body;
+  const language = lang?.startsWith("nl") ? "Dutch" : lang?.startsWith("de") ? "German" : lang?.startsWith("fr") ? "French" : "English";
   if (!name || !recipe) return NextResponse.json({ error: "Missing fields" }, { status: 400 });
 
   // Step 2: confirmed — save + generate image
@@ -114,6 +115,7 @@ User "${name}" submitted:
 ---
 ${recipe}
 ---${similarContext}
+IMPORTANT: Always respond in ${language}. All feedback, comments and messages must be in ${language}.
 Return ONLY valid JSON, no markdown:
 {
   "approved": true/false,
@@ -165,9 +167,15 @@ Return ONLY valid JSON, no markdown:
     // If Claude says it's a duplicate, override approval
     if (result.duplicate) {
       result.approved = false;
-      result.feedback = `This recipe is very similar to "${result.duplicate_of}" which is already on Culirated. Please submit a more original recipe.`;
+      const dupMsg: Record<string, string> = {
+        Dutch: `Jouw recept lijkt sterk op "${result.duplicate_of}" dat al op Culirated staat. We houden van variaties — maar dit ligt te dicht bij wat we al hebben. Geef het jouw eigen draai met andere technieken, ingrediënten of een uniek verhaal.`,
+        German: `Dein Rezept ähnelt sehr "${result.duplicate_of}", das bereits auf Culirated steht. Wir lieben Variationen — aber dieses ist zu ähnlich zu dem, was wir bereits haben. Verleihe ihm deine eigene Note.`,
+        French: `Votre recette ressemble beaucoup à "${result.duplicate_of}" déjà présente sur Culirated. Nous adorons les variantes — mais celle-ci est trop proche. Donnez-lui votre propre touche.`,
+        English: `Your recipe is very similar to "${result.duplicate_of}" which is already on Culirated. We love variations — but this one is too close to what we already have. Try giving it your own twist with different techniques or a unique story.`,
+      };
+      result.feedback = dupMsg[language] || dupMsg.English;
       if (!result.criteria) result.criteria = [];
-      result.criteria.unshift({ name: "Duplicate check", passed: false, comment: `Too similar to: "${result.duplicate_of}"` });
+      result.criteria.unshift({ name: "Duplicate check", passed: false, comment: `Too similar to existing recipe: "${result.duplicate_of}"` });
     }
 
     return NextResponse.json({ ...result, ai_score: { score: result.score, ...result.meta } });
