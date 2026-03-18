@@ -324,7 +324,7 @@ function Reactions({ recipeId, initial }: { recipeId: string, initial: { want: n
                 background: isActive ? "#1e1609" : "#faf8f3",
                 color: isActive ? "#e8dfc8" : "#4a3820",
                 border: `1.5px solid ${isActive ? "#1e1609" : "rgba(180,160,120,0.3)"}`,
-                borderRadius: "24px", padding: "10px 18px",
+                borderRadius: "24px", padding: "11px 20px",
                 fontFamily: "monospace", fontSize: "13px", cursor: "pointer",
                 transition: "all 0.15s",
               }}>
