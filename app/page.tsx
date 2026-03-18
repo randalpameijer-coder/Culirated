@@ -272,8 +272,39 @@ export default function Home() {
   const [activeNav, setActiveNav] = useState("");
   const [activeFilter, setFilter] = useState(0);
   const [dbRecipes, setDbRecipes] = useState<any[]>([]);
+  const [catCounts, setCatCounts] = useState<Record<string, number>>({});
   const t = T[lang];
   const isEN = lang === "en";
+
+  useEffect(() => {
+    async function fetchCatCounts() {
+      // Fetch counts for popular categories
+      const cats = [
+        { key: "cuisine", value: "Italian" },
+        { key: "diet", value: "Vegetarian" },
+        { key: "cuisine", value: "Asian" },
+        { key: "diet", value: "Vegan" },
+        { key: "method", value: "BBQ & Grill" },
+        { key: "course", value: "Breakfast" },
+        { key: "occasion", value: "Meal prep" },
+        { key: "diet", value: "Gluten-free" },
+      ];
+      const counts: Record<string, number> = {};
+      await Promise.all(cats.map(async (cat) => {
+        const isArray = cat.key === "diet" || cat.key === "occasion";
+        let query = supabase.from("recipes").select("id", { count: "exact", head: true }).eq("status", "approved");
+        if (isArray) {
+          query = query.contains(`ai_score->${cat.key}`, JSON.stringify([cat.value]));
+        } else {
+          query = query.ilike(`ai_score->>${cat.key}`, cat.value);
+        }
+        const { count } = await query;
+        counts[cat.value] = count || 0;
+      }));
+      setCatCounts(counts);
+    }
+    fetchCatCounts();
+  }, []);
 
   // Close dropdown on click outside
   useEffect(() => {
@@ -292,7 +323,7 @@ export default function Home() {
       const orderCol = activeFilter === 1 ? "ai_score->>score" : "created_at";
       const { data } = await supabase
         .from("recipes")
-        .select("id, title, description, prep_time, calories, difficulty, ai_score, status, image_url")
+        .select("id, title, description, prep_time, calories, difficulty, ai_score, status, image_url, author_name")
         .eq("status", "approved")
         .order("created_at", { ascending: false })
         .limit(10);
@@ -487,16 +518,46 @@ export default function Home() {
           <div className="cats-pad" style={{ maxWidth: "1280px", margin: "0 auto", padding: "40px 48px" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
               <h2 style={{ fontFamily: "Georgia, serif", color: "#e8dfc8", fontSize: "22px" }}>{t.catTitle}</h2>
-              <span style={{ fontFamily: "monospace", fontSize: "12px", color: "#8a7355", cursor: "pointer" }}>{t.catMore}</span>
+              <a href="/recipes" style={{ textDecoration: "none", fontFamily: "monospace", fontSize: "12px", color: "#8a7355", cursor: "pointer" }}>{t.catMore}</a>
             </div>
             <div className="cats-grid">
-              {t.cats.map((cat: any) => (
-                <div key={cat.name} style={{ background: "rgba(245,240,232,0.06)", border: "1px solid rgba(245,240,232,0.1)", borderRadius: "14px", padding: "18px 12px", cursor: "pointer", textAlign: "center" }}>
-                  <div style={{ fontSize: "24px", marginBottom: "8px" }}>{cat.icon}</div>
-                  <div style={{ fontFamily: "monospace", fontSize: "11px", color: "#c8b898", marginBottom: "4px", lineHeight: 1.35 }}>{cat.name}</div>
-                  <div style={{ fontFamily: "monospace", fontSize: "10px", color: "#6b5840" }}>{cat.count.toLocaleString()}</div>
-                </div>
-              ))}
+              {t.cats.map((cat: any) => {
+                const catLinks: Record<string, string> = {
+                  [t.cats[0]?.name]: "/recipes?diet=Vegetarian",
+                  [t.cats[1]?.name]: "/recipes?cuisine=Italian",
+                  [t.cats[2]?.name]: "/recipes?cuisine=Asian",
+                  [t.cats[3]?.name]: "/recipes?method=BBQ+%26+Grill",
+                  [t.cats[4]?.name]: "/recipes?diet=Vegan",
+                  [t.cats[5]?.name]: "/recipes?occasion=Meal+prep",
+                  [t.cats[6]?.name]: "/recipes?course=Breakfast",
+                  [t.cats[7]?.name]: "/recipes?diet=Gluten-free",
+                };
+                const countKeys: Record<string, string> = {
+                  [t.cats[0]?.name]: "Vegetarian",
+                  [t.cats[1]?.name]: "Italian",
+                  [t.cats[2]?.name]: "Asian",
+                  [t.cats[3]?.name]: "BBQ & Grill",
+                  [t.cats[4]?.name]: "Vegan",
+                  [t.cats[5]?.name]: "Meal prep",
+                  [t.cats[6]?.name]: "Breakfast",
+                  [t.cats[7]?.name]: "Gluten-free",
+                };
+                const href = catLinks[cat.name] || "/recipes";
+                const realCount = catCounts[countKeys[cat.name]];
+                return (
+                  <a key={cat.name} href={href} style={{ textDecoration: "none" }}>
+                    <div style={{ background: "rgba(245,240,232,0.06)", border: "1px solid rgba(245,240,232,0.1)", borderRadius: "14px", padding: "18px 12px", cursor: "pointer", textAlign: "center", transition: "background 0.15s" }}
+                      onMouseEnter={e => (e.currentTarget.style.background = "rgba(245,240,232,0.12)")}
+                      onMouseLeave={e => (e.currentTarget.style.background = "rgba(245,240,232,0.06)")}>
+                      <div style={{ fontSize: "24px", marginBottom: "8px" }}>{cat.icon}</div>
+                      <div style={{ fontFamily: "monospace", fontSize: "11px", color: "#c8b898", marginBottom: "4px", lineHeight: 1.35 }}>{cat.name}</div>
+                      <div style={{ fontFamily: "monospace", fontSize: "10px", color: "#6b5840" }}>
+                        {realCount !== undefined ? realCount.toLocaleString() : cat.count.toLocaleString()}
+                      </div>
+                    </div>
+                  </a>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -539,6 +600,7 @@ export default function Home() {
                           {r.ai_score?.diet?.[0] && <span style={{ fontSize: "11px", fontFamily: "monospace", color: "#4a7a3d", background: "rgba(74,122,61,0.1)", borderRadius: "20px", padding: "3px 10px" }}>{r.ai_score.diet[0]}</span>}
                         </div>
                         <h3 className="recipe-card-title" style={{ fontFamily: "Georgia, serif", fontSize: "18px", fontWeight: "700", color: "#1e1609", lineHeight: 1.25, marginBottom: "8px" }}>{r.title}</h3>
+                        {r.author_name && <p style={{ fontFamily: "monospace", fontSize: "11px", color: "#b8a882", marginBottom: "4px" }}>👨‍🍳 {r.author_name}</p>}
                       </div>
                       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: "12px", borderTop: "1px solid rgba(180,160,120,0.15)" }}>
                         <div style={{ display: "flex", gap: "12px" }}>
