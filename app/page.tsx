@@ -377,6 +377,9 @@ export default function Home() {
           .nav-inner { padding: 0 16px; gap: 10px; height: 60px; }
           .nav-links { display: none; }
           .nav-search { display: none; }
+          .nav-share { display: none; }
+          .submit-btn { font-size: 0 !important; padding: 10px 14px !important; border-radius: 50% !important; width: 40px; height: 40px; display: flex !important; align-items: center; justify-content: center; }
+          .submit-btn::after { content: "+"; font-size: 20px; font-family: monospace; color: #e8f5e4; }
 
           /* Hero */
           .hero-grid { grid-template-columns: 1fr; padding: 28px 16px 36px; gap: 32px; }
@@ -447,7 +450,7 @@ export default function Home() {
             {isEN && localLang !== "en" && (
               <button onClick={() => setLang(localLang)} style={{ flexShrink: 0, background: "rgba(30,22,9,0.05)", border: "1px solid rgba(180,160,120,0.3)", borderRadius: "20px", padding: "7px 14px", cursor: "pointer", fontFamily: "monospace", fontSize: "12px", color: "#4a3820", whiteSpace: "nowrap" }}>{LOCAL_NAMES[localLang]}</button>
             )}
-            <div style={{ position: "relative", flexShrink: 0 }}>
+            <div className="nav-share" style={{ position: "relative", flexShrink: 0 }}>
               <button onClick={() => setShowShare(!showShare)} style={{ background: "#e8581a", border: "none", borderRadius: "20px", padding: "10px 16px", cursor: "pointer", fontFamily: "monospace", fontSize: "12px", color: "#fff", whiteSpace: "nowrap", fontWeight: "500" }}>
                 ↗ {isNL ? "Delen" : isDE ? "Teilen" : isFR ? "Partager" : "Share"}
               </button>
