@@ -192,6 +192,9 @@ function NavShareButton({ title }: { title?: string }) {
   const [show, setShow] = useState(false);
   const ref = React.useRef<HTMLDivElement>(null);
   const url = typeof window !== "undefined" ? window.location.href : "";
+  const lang = typeof navigator !== "undefined" ? navigator.language : "en";
+  const isNL = lang.startsWith("nl"); const isDE = lang.startsWith("de"); const isFR = lang.startsWith("fr");
+  const label = isNL ? "Delen" : isDE ? "Teilen" : isFR ? "Partager" : "Share";
   const text = encodeURIComponent(`${title || "Recipe"} on Culirated`);
   const encodedUrl = encodeURIComponent(url);
 
@@ -223,7 +226,7 @@ function NavShareButton({ title }: { title?: string }) {
   return (
     <div ref={ref} style={{ position: "relative" }}>
       <button onClick={() => setShow(!show)} style={{ background: "#e8581a", border: "none", borderRadius: "20px", padding: "10px 16px", cursor: "pointer", fontFamily: "monospace", fontSize: "12px", color: "#fff", fontWeight: "500" }}>
-        ↗ Share
+        ↗ {label}
       </button>
       {show && (
         <div style={{ position: "absolute", top: "calc(100% + 8px)", right: 0, background: "#fff", borderRadius: "16px", padding: "8px", border: "1px solid rgba(180,160,120,0.2)", boxShadow: "0 12px 40px rgba(30,22,9,0.12)", zIndex: 200, minWidth: "200px" }}>
@@ -253,6 +256,11 @@ function ShareButtons({ title }: { title: string }) {
   const [copied, setCopied] = useState(false);
   const ref = React.useRef<HTMLDivElement>(null);
   const url = typeof window !== "undefined" ? window.location.href : "";
+  const lang = typeof navigator !== "undefined" ? navigator.language : "en";
+  const isNL = lang.startsWith("nl"); const isDE = lang.startsWith("de"); const isFR = lang.startsWith("fr");
+  const shareLabel = isNL ? "Deel dit recept" : isDE ? "Rezept teilen" : isFR ? "Partager la recette" : "Share this recipe";
+  const copyLabel = isNL ? "Link kopiëren" : isDE ? "Link kopieren" : isFR ? "Copier le lien" : "Copy link";
+  const copiedLabel = isNL ? "Gekopieerd!" : "Copied!";
   const text = encodeURIComponent(`${title} on Culirated`);
   const encodedUrl = encodeURIComponent(url);
 
@@ -269,6 +277,8 @@ function ShareButtons({ title }: { title: string }) {
     { label: "Facebook", href: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`, icon: "📘" },
     { label: "X / Twitter", href: `https://x.com/intent/tweet?text=${text}&url=${encodedUrl}`, icon: "𝕏" },
     { label: "Pinterest", href: `https://pinterest.com/pin/create/button/?url=${encodedUrl}&description=${text}`, icon: "📌" },
+    { label: "Instagram", href: `https://www.instagram.com/`, icon: "📸" },
+    { label: "TikTok", href: `https://www.tiktok.com/`, icon: "🎵" },
     { label: "LinkedIn", href: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`, icon: "💼" },
     { label: "Reddit", href: `https://reddit.com/submit?url=${encodedUrl}&title=${text}`, icon: "🤖" },
     { label: "Email", href: `mailto:?subject=${text}&body=${encodedUrl}`, icon: "✉️" },
@@ -276,9 +286,9 @@ function ShareButtons({ title }: { title: string }) {
 
   return (
     <div ref={ref} style={{ marginTop: "32px", position: "relative", display: "inline-block" }}>
-      <div style={{ fontFamily: "monospace", fontSize: "11px", color: "#8a7355", letterSpacing: "1px", marginBottom: "14px", textTransform: "uppercase" }}>Share this recipe</div>
+      <div style={{ fontFamily: "monospace", fontSize: "11px", color: "#8a7355", letterSpacing: "1px", marginBottom: "14px", textTransform: "uppercase" }}>{shareLabel}</div>
       <button onClick={() => setShow(!show)} style={{ background: "#e8581a", border: "none", borderRadius: "20px", padding: "12px 24px", cursor: "pointer", fontFamily: "monospace", fontSize: "13px", color: "#fff", fontWeight: "500" }}>
-        ↗ {show ? "Close" : "Share this recipe"}
+        ↗ {shareLabel}
       </button>
       {show && (
         <div style={{ position: "absolute", bottom: "calc(100% + 8px)", left: 0, background: "#fff", borderRadius: "16px", padding: "8px", border: "1px solid rgba(180,160,120,0.2)", boxShadow: "0 12px 40px rgba(30,22,9,0.12)", zIndex: 200, minWidth: "200px" }}>
@@ -295,7 +305,7 @@ function ShareButtons({ title }: { title: string }) {
             style={{ display: "flex", alignItems: "center", gap: "10px", padding: "9px 14px", borderRadius: "10px", fontFamily: "monospace", fontSize: "12px", color: copied ? "#2d5a27" : "#1e1609", cursor: "pointer", borderTop: "1px solid rgba(180,160,120,0.15)", marginTop: "4px" }}
             onMouseEnter={e => (e.currentTarget.style.background = "#f5f0e8")}
             onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
-            <span style={{ fontSize: "15px" }}>{copied ? "✅" : "🔗"}</span> {copied ? "Copied!" : "Copy link"}
+            <span style={{ fontSize: "15px" }}>{copied ? "✅" : "🔗"}</span> {copied ? copiedLabel : copyLabel}
           </div>
         </div>
       )}
