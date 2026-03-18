@@ -176,10 +176,52 @@ export default function RecipePage({ params }: { params: Promise<{ id: string }>
                   </div>
                 </div>
               </div>
+
+              {/* Share */}
+              <ShareButtons title={recipe.title} />
             </div>
           </div>
         </div>
       </div>
     </>
+  );
+}
+
+function ShareButtons({ title }: { title: string }) {
+  const [copied, setCopied] = useState(false);
+  const url = typeof window !== "undefined" ? window.location.href : "";
+  const text = encodeURIComponent(`${title} — check this recipe on Culirated`);
+  const encodedUrl = encodeURIComponent(url);
+
+  function copyLink() {
+    navigator.clipboard.writeText(url).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  }
+
+  const buttons = [
+    { label: "WhatsApp", color: "#25D366", href: `https://wa.me/?text=${text}%20${encodedUrl}`, icon: "💬" },
+    { label: "Facebook", color: "#1877F2", href: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`, icon: "📘" },
+    { label: "X", color: "#000", href: `https://x.com/intent/tweet?text=${text}&url=${encodedUrl}`, icon: "𝕏" },
+    { label: "Pinterest", color: "#E60023", href: `https://pinterest.com/pin/create/button/?url=${encodedUrl}&description=${text}`, icon: "📌" },
+  ];
+
+  return (
+    <div style={{ marginTop: "32px" }}>
+      <div style={{ fontFamily: "monospace", fontSize: "11px", color: "#8a7355", letterSpacing: "1px", marginBottom: "14px", textTransform: "uppercase" }}>Share this recipe</div>
+      <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+        {buttons.map(b => (
+          <a key={b.label} href={b.href} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "7px", background: b.color, color: "#fff", borderRadius: "20px", padding: "9px 16px", fontFamily: "monospace", fontSize: "12px", fontWeight: "500", cursor: "pointer" }}>
+              <span>{b.icon}</span> {b.label}
+            </div>
+          </a>
+        ))}
+        <button onClick={copyLink} style={{ display: "flex", alignItems: "center", gap: "7px", background: copied ? "#2d5a27" : "#f5f0e8", color: copied ? "#fff" : "#1e1609", border: "1px solid rgba(180,160,120,0.3)", borderRadius: "20px", padding: "9px 16px", fontFamily: "monospace", fontSize: "12px", cursor: "pointer", transition: "all 0.2s" }}>
+          <span>{copied ? "✅" : "🔗"}</span> {copied ? "Copied!" : "Copy link"}
+        </button>
+      </div>
+    </div>
   );
 }
