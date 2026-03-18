@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, use } from "react";
 import { createClient } from "@supabase/supabase-js";
+import { createClient } from "@supabase/supabase-js";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -178,6 +179,9 @@ export default function RecipePage({ params }: { params: Promise<{ id: string }>
                 </div>
               </div>
 
+              {/* Reactions */}
+              <Reactions recipeId={id} initial={{ want: recipe.reactions_want || 0, made: recipe.reactions_made || 0, favorite: recipe.reactions_favorite || 0 }} />
+
               {/* Share */}
               <ShareButtons title={recipe.title} />
             </div>
@@ -251,7 +255,67 @@ function NavShareButton({ title }: { title?: string }) {
   );
 }
 
-function ShareButtons({ title }: { title: string }) {
+function Reactions({ recipeId, initial }: { recipeId: string, initial: { want: number, made: number, favorite: number } }) {
+  const [counts, setCounts] = useState(initial);
+  const [active, setActive] = useState<string[]>([]);
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
+
+  const lang = typeof navigator !== "undefined" ? navigator.language : "en";
+  const isNL = lang.startsWith("nl");
+
+  const reactions = [
+    { key: "want", icon: "😍", label: isNL ? "Wil ik maken" : "Want to make", col: "reactions_want" },
+    { key: "made", icon: "✅", label: isNL ? "Gemaakt" : "Made it", col: "reactions_made" },
+    { key: "favorite", icon: "❤️", label: isNL ? "Favoriet" : "Favourite", col: "reactions_favorite" },
+  ];
+
+  async function toggle(key: string, col: string) {
+    const isActive = active.includes(key);
+    const delta = isActive ? -1 : 1;
+    const newCount = Math.max(0, (counts as any)[key] + delta);
+
+    setCounts(prev => ({ ...prev, [key]: newCount }));
+    setActive(prev => isActive ? prev.filter(k => k !== key) : [...prev, key]);
+
+    await supabase.from("recipes").update({ [col]: newCount }).eq("id", recipeId);
+  }
+
+  return (
+    <div style={{ marginTop: "40px", marginBottom: "8px" }}>
+      <div style={{ fontFamily: "monospace", fontSize: "11px", color: "#8a7355", letterSpacing: "1px", marginBottom: "16px", textTransform: "uppercase" }}>
+        {isNL ? "Wat vind je?" : "What do you think?"}
+      </div>
+      <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
+        {reactions.map(r => {
+          const isActive = active.includes(r.key);
+          return (
+            <button key={r.key} onClick={() => toggle(r.key, r.col)}
+              style={{
+                display: "flex", alignItems: "center", gap: "8px",
+                background: isActive ? "#1e1609" : "#faf8f3",
+                color: isActive ? "#e8dfc8" : "#4a3820",
+                border: `1.5px solid ${isActive ? "#1e1609" : "rgba(180,160,120,0.3)"}`,
+                borderRadius: "24px", padding: "10px 18px",
+                fontFamily: "monospace", fontSize: "13px", cursor: "pointer",
+                transition: "all 0.15s",
+              }}>
+              <span style={{ fontSize: "18px" }}>{r.icon}</span>
+              <span>{r.label}</span>
+              <span style={{ background: isActive ? "rgba(255,255,255,0.15)" : "rgba(30,22,9,0.06)", borderRadius: "12px", padding: "1px 8px", fontSize: "11px" }}>
+                {(counts as any)[r.key]}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+
   const [show, setShow] = useState(false);
   const [copied, setCopied] = useState(false);
   const ref = React.useRef<HTMLDivElement>(null);
