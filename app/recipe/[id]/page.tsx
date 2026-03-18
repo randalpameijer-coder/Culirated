@@ -83,6 +83,19 @@ export default function RecipePage({ params }: { params: Promise<{ id: string }>
               {recipe.description && (
                 <p style={{ fontFamily: "Georgia, serif", fontSize: "18px", color: "rgba(255,255,255,0.85)", marginTop: "12px", maxWidth: "640px", lineHeight: 1.5 }}>{recipe.description}</p>
               )}
+              {/* Reaction totals on image */}
+              <div style={{ display: "flex", gap: "12px", marginTop: "16px" }}>
+                {[
+                  { icon: "😍", count: recipe.reactions_want || 0 },
+                  { icon: "✅", count: recipe.reactions_made || 0 },
+                  { icon: "❤️", count: recipe.reactions_favorite || 0 },
+                ].map(r => r.count > 0 && (
+                  <div key={r.icon} style={{ display: "flex", alignItems: "center", gap: "5px", background: "rgba(255,255,255,0.15)", backdropFilter: "blur(8px)", borderRadius: "20px", padding: "5px 12px" }}>
+                    <span style={{ fontSize: "16px" }}>{r.icon}</span>
+                    <span style={{ fontFamily: "monospace", fontSize: "12px", color: "#fff", fontWeight: "500" }}>{r.count}</span>
+                  </div>
+                ))}
+              </div>
             </div>
             {score && (
               <div style={{ position: "absolute", top: "24px", right: "48px", background: "rgba(255,255,255,0.95)", backdropFilter: "blur(12px)", borderRadius: "16px", padding: "14px 18px", textAlign: "center" }}>
@@ -266,19 +279,17 @@ function Reactions({ recipeId, initial }: { recipeId: string, initial: { want: n
   const isNL = lang.startsWith("nl");
 
   const reactions = [
-    { key: "want", icon: "😍", label: isNL ? "Wil ik maken" : "Want to make", col: "reactions_want" },
-    { key: "made", icon: "✅", label: isNL ? "Gemaakt" : "Made it", col: "reactions_made" },
-    { key: "favorite", icon: "❤️", label: isNL ? "Favoriet" : "Favourite", col: "reactions_favorite" },
+    { key: "want", icon: "😍", col: "reactions_want" },
+    { key: "made", icon: "✅", col: "reactions_made" },
+    { key: "favorite", icon: "❤️", col: "reactions_favorite" },
   ];
 
   async function toggle(key: string, col: string) {
     const isActive = active.includes(key);
     const delta = isActive ? -1 : 1;
     const newCount = Math.max(0, (counts as any)[key] + delta);
-
     setCounts(prev => ({ ...prev, [key]: newCount }));
     setActive(prev => isActive ? prev.filter(k => k !== key) : [...prev, key]);
-
     await supabase.from("recipes").update({ [col]: newCount }).eq("id", recipeId);
   }
 
@@ -301,9 +312,8 @@ function Reactions({ recipeId, initial }: { recipeId: string, initial: { want: n
                 fontFamily: "monospace", fontSize: "13px", cursor: "pointer",
                 transition: "all 0.15s",
               }}>
-              <span style={{ fontSize: "18px" }}>{r.icon}</span>
-              <span>{r.label}</span>
-              <span style={{ background: isActive ? "rgba(255,255,255,0.15)" : "rgba(30,22,9,0.06)", borderRadius: "12px", padding: "1px 8px", fontSize: "11px" }}>
+              <span style={{ fontSize: "20px" }}>{r.icon}</span>
+              <span style={{ background: isActive ? "rgba(255,255,255,0.15)" : "rgba(30,22,9,0.06)", borderRadius: "12px", padding: "1px 8px", fontSize: "12px", fontWeight: "500" }}>
                 {(counts as any)[r.key]}
               </span>
             </button>
