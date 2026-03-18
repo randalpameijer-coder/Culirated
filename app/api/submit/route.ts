@@ -25,7 +25,7 @@ async function checkDuplicate(embedding: number[]): Promise<{ isDuplicate: boole
   try {
     const { data } = await supabase.rpc("match_recipes", {
       query_embedding: embedding,
-      match_threshold: 0.92,
+      match_threshold: 0.85,
       match_count: 1,
     });
     if (data && data.length > 0) {
