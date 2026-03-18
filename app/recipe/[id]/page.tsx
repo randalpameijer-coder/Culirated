@@ -125,6 +125,22 @@ export default function RecipePage({ params }: { params: Promise<{ id: string }>
             </div>
           )}
 
+          {/* Reaction totals if no hero image */}
+          {!recipe.image_url && (recipe.reactions_want > 0 || recipe.reactions_made > 0 || recipe.reactions_favorite > 0) && (
+            <div style={{ display: "flex", gap: "10px", marginBottom: "32px" }}>
+              {[
+                { icon: "😍", count: recipe.reactions_want || 0 },
+                { icon: "✅", count: recipe.reactions_made || 0 },
+                { icon: "❤️", count: recipe.reactions_favorite || 0 },
+              ].map(r => r.count > 0 && (
+                <div key={r.icon} style={{ display: "flex", alignItems: "center", gap: "5px", background: "#faf8f3", border: "1px solid rgba(180,160,120,0.2)", borderRadius: "20px", padding: "5px 12px" }}>
+                  <span style={{ fontSize: "16px" }}>{r.icon}</span>
+                  <span style={{ fontFamily: "monospace", fontSize: "12px", color: "#4a3820", fontWeight: "500" }}>{r.count}</span>
+                </div>
+              ))}
+            </div>
+          )}
+
           {/* Stats */}
           <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "16px", marginBottom: "48px" }}>
             {[
@@ -313,9 +329,6 @@ function Reactions({ recipeId, initial }: { recipeId: string, initial: { want: n
                 transition: "all 0.15s",
               }}>
               <span style={{ fontSize: "20px" }}>{r.icon}</span>
-              <span style={{ background: isActive ? "rgba(255,255,255,0.15)" : "rgba(30,22,9,0.06)", borderRadius: "12px", padding: "1px 8px", fontSize: "12px", fontWeight: "500" }}>
-                {(counts as any)[r.key]}
-              </span>
             </button>
           );
         })}
