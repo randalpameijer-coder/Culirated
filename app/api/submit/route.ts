@@ -8,6 +8,33 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_KEY!
 );
 
+async function generateEmbedding(text: string): Promise<number[] | null> {
+  try {
+    const res = await fetch("https://api.openai.com/v1/embeddings", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${process.env.OPENAI_API_KEY}` },
+      body: JSON.stringify({ model: "text-embedding-3-small", input: text }),
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.data[0].embedding;
+  } catch { return null; }
+}
+
+async function checkDuplicate(embedding: number[]): Promise<{ isDuplicate: boolean; similarTitle?: string }> {
+  try {
+    const { data } = await supabase.rpc("match_recipes", {
+      query_embedding: embedding,
+      match_threshold: 0.92,
+      match_count: 1,
+    });
+    if (data && data.length > 0) {
+      return { isDuplicate: true, similarTitle: data[0].title };
+    }
+    return { isDuplicate: false };
+  } catch { return { isDuplicate: false }; }
+}
+
 async function generateImage(title: string, cuisine: string): Promise<string | null> {
   try {
     const res = await fetch("https://api.openai.com/v1/images/generations", {
@@ -53,7 +80,30 @@ export async function POST(req: NextRequest) {
       ai_score: body.ai_score,
     }).select("id").single();
     if (error) return NextResponse.json({ error: "Failed to save" }, { status: 500 });
+
+    // Save embedding for future duplicate checks
+    const embeddingText = `${body.confirmedTitle} ${(body.confirmedIngredients || []).join(" ")}`;
+    const embedding = await generateEmbedding(embeddingText);
+    if (embedding) {
+      await supabase.from("recipes").update({ embedding }).eq("id", inserted.id);
+    }
+
     return NextResponse.json({ saved: true, id: inserted.id, imageUrl });
+  }
+
+  // Step 1: check duplicate first
+  const embeddingText = recipe.slice(0, 500);
+  const embedding = await generateEmbedding(embeddingText);
+  if (embedding) {
+    const { isDuplicate, similarTitle } = await checkDuplicate(embedding);
+    if (isDuplicate) {
+      return NextResponse.json({
+        approved: false,
+        score: 0,
+        feedback: `This recipe is very similar to "${similarTitle}" which is already on Culirated. Please submit an original recipe.`,
+        criteria: [{ name: "Duplicate check", passed: false, comment: `Too similar to existing recipe: "${similarTitle}"` }],
+      });
+    }
   }
 
   // Step 1: analyse
