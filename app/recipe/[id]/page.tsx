@@ -55,7 +55,7 @@ export default function RecipePage({ params }: { params: Promise<{ id: string }>
         </div>
 
         {/* Nav */}
-        <nav style={{ background: "rgba(245,240,232,0.97)", backdropFilter: "blur(20px)", borderBottom: "1px solid rgba(180,160,120,0.25)", padding: "0 48px" }}>
+        <nav style={{ background: "rgba(245,240,232,0.97)", backdropFilter: "blur(20px)", borderBottom: "1px solid rgba(180,160,120,0.25)", padding: "0 48px", position: "sticky", top: 0, zIndex: 100 }}>
           <div style={{ maxWidth: "1280px", margin: "0 auto", display: "flex", alignItems: "center", height: "70px", gap: "24px" }}>
             <a href="/" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: "10px" }}>
               <div style={{ width: "36px", height: "36px", borderRadius: "10px", background: "linear-gradient(135deg,#2d5a27,#6aa86e)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "18px" }}>🍃</div>
@@ -63,7 +63,7 @@ export default function RecipePage({ params }: { params: Promise<{ id: string }>
             </a>
             <a href="/" style={{ fontFamily: "monospace", fontSize: "12px", color: "#8a7355", textDecoration: "none" }}>← All recipes</a>
             <div style={{ flex: 1 }} />
-            <NavShareButton title={recipe?.title} />
+            <NavShareButton title={recipe?.title || ""} />
             <a href="/submit" style={{ textDecoration: "none" }}>
               <button style={{ background: "#3a7a32", color: "#e8f5e4", border: "none", borderRadius: "24px", padding: "10px 18px", cursor: "pointer", fontFamily: "monospace", fontSize: "12px", fontWeight: "500" }}>+ Submit Recipe</button>
             </a>
@@ -249,40 +249,56 @@ function NavShareButton({ title }: { title?: string }) {
 }
 
 function ShareButtons({ title }: { title: string }) {
+  const [show, setShow] = useState(false);
   const [copied, setCopied] = useState(false);
+  const ref = React.useRef<HTMLDivElement>(null);
   const url = typeof window !== "undefined" ? window.location.href : "";
-  const text = encodeURIComponent(`${title} — check this recipe on Culirated`);
+  const text = encodeURIComponent(`${title} on Culirated`);
   const encodedUrl = encodeURIComponent(url);
 
-  function copyLink() {
-    navigator.clipboard.writeText(url).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    });
-  }
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setShow(false);
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
 
-  const buttons = [
-    { label: "WhatsApp", color: "#25D366", href: `https://wa.me/?text=${text}%20${encodedUrl}`, icon: "💬" },
-    { label: "Facebook", color: "#1877F2", href: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`, icon: "📘" },
-    { label: "X", color: "#000", href: `https://x.com/intent/tweet?text=${text}&url=${encodedUrl}`, icon: "𝕏" },
-    { label: "Pinterest", color: "#E60023", href: `https://pinterest.com/pin/create/button/?url=${encodedUrl}&description=${text}`, icon: "📌" },
+  const socials = [
+    { label: "WhatsApp", href: `https://wa.me/?text=${text}%20${encodedUrl}`, icon: "💬" },
+    { label: "Facebook", href: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`, icon: "📘" },
+    { label: "X / Twitter", href: `https://x.com/intent/tweet?text=${text}&url=${encodedUrl}`, icon: "𝕏" },
+    { label: "Pinterest", href: `https://pinterest.com/pin/create/button/?url=${encodedUrl}&description=${text}`, icon: "📌" },
+    { label: "LinkedIn", href: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`, icon: "💼" },
+    { label: "Reddit", href: `https://reddit.com/submit?url=${encodedUrl}&title=${text}`, icon: "🤖" },
+    { label: "Email", href: `mailto:?subject=${text}&body=${encodedUrl}`, icon: "✉️" },
   ];
 
   return (
-    <div style={{ marginTop: "32px" }}>
+    <div ref={ref} style={{ marginTop: "32px", position: "relative", display: "inline-block" }}>
       <div style={{ fontFamily: "monospace", fontSize: "11px", color: "#8a7355", letterSpacing: "1px", marginBottom: "14px", textTransform: "uppercase" }}>Share this recipe</div>
-      <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
-        {buttons.map(b => (
-          <a key={b.label} href={b.href} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "7px", background: b.color, color: "#fff", borderRadius: "20px", padding: "9px 16px", fontFamily: "monospace", fontSize: "12px", fontWeight: "500", cursor: "pointer" }}>
-              <span>{b.icon}</span> {b.label}
-            </div>
-          </a>
-        ))}
-        <button onClick={copyLink} style={{ display: "flex", alignItems: "center", gap: "7px", background: copied ? "#2d5a27" : "#f5f0e8", color: copied ? "#fff" : "#1e1609", border: "1px solid rgba(180,160,120,0.3)", borderRadius: "20px", padding: "9px 16px", fontFamily: "monospace", fontSize: "12px", cursor: "pointer", transition: "all 0.2s" }}>
-          <span>{copied ? "✅" : "🔗"}</span> {copied ? "Copied!" : "Copy link"}
-        </button>
-      </div>
+      <button onClick={() => setShow(!show)} style={{ background: "#e8581a", border: "none", borderRadius: "20px", padding: "12px 24px", cursor: "pointer", fontFamily: "monospace", fontSize: "13px", color: "#fff", fontWeight: "500" }}>
+        ↗ {show ? "Close" : "Share this recipe"}
+      </button>
+      {show && (
+        <div style={{ position: "absolute", top: "calc(100% + 8px)", left: 0, background: "#fff", borderRadius: "16px", padding: "8px", border: "1px solid rgba(180,160,120,0.2)", boxShadow: "0 12px 40px rgba(30,22,9,0.12)", zIndex: 200, minWidth: "200px" }}>
+          {socials.map(b => (
+            <a key={b.label} href={b.href} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "10px", padding: "9px 14px", borderRadius: "10px", fontFamily: "monospace", fontSize: "12px", color: "#1e1609" }}
+                onMouseEnter={e => (e.currentTarget.style.background = "#f5f0e8")}
+                onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
+                <span style={{ fontSize: "15px" }}>{b.icon}</span> {b.label}
+              </div>
+            </a>
+          ))}
+          <div onClick={() => { navigator.clipboard.writeText(url); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
+            style={{ display: "flex", alignItems: "center", gap: "10px", padding: "9px 14px", borderRadius: "10px", fontFamily: "monospace", fontSize: "12px", color: copied ? "#2d5a27" : "#1e1609", cursor: "pointer", borderTop: "1px solid rgba(180,160,120,0.15)", marginTop: "4px" }}
+            onMouseEnter={e => (e.currentTarget.style.background = "#f5f0e8")}
+            onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
+            <span style={{ fontSize: "15px" }}>{copied ? "✅" : "🔗"}</span> {copied ? "Copied!" : "Copy link"}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

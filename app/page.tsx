@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { createClient } from "@supabase/supabase-js";
 
 const supabase = createClient(
@@ -726,26 +726,63 @@ export default function Home() {
               {t.footerLinks.map((l: string) => (
                 <span key={l} style={{ fontFamily: "monospace", fontSize: "12px", color: "#8a7355", cursor: "pointer" }}>{l}</span>
               ))}
-              {/* Share buttons in footer */}
-              <div style={{ display: "flex", gap: "8px" }}>
-                {[
-                  { icon: "💬", href: `https://wa.me/?text=${encodeURIComponent("Check Culirated — AI-curated recipes: https://culirated.com")}` },
-                  { icon: "📘", href: `https://www.facebook.com/sharer/sharer.php?u=https://culirated.com` },
-                  { icon: "𝕏", href: `https://x.com/intent/tweet?text=${encodeURIComponent("AI-curated recipes by real cooks")}&url=https://culirated.com` },
-                  { icon: "📌", href: `https://pinterest.com/pin/create/button/?url=https://culirated.com` },
-                ].map((b, i) => (
-                  <a key={i} href={b.href} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none", fontSize: "16px", width: "32px", height: "32px", borderRadius: "50%", background: "rgba(180,160,120,0.12)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}
-                    onMouseEnter={e => (e.currentTarget.style.background = "rgba(180,160,120,0.25)")}
-                    onMouseLeave={e => (e.currentTarget.style.background = "rgba(180,160,120,0.12)")}>
-                    {b.icon}
-                  </a>
-                ))}
-              </div>
+              <FooterShareButton lang={lang} />
             </div>
             <span style={{ fontFamily: "monospace", fontSize: "11px", color: "#b8a882" }}>© 2025 Culirated</span>
           </div>
         </footer>
       </div>
     </>
+  );
+}
+
+function FooterShareButton({ lang }: { lang: string }) {
+  const [show, setShow] = useState(false);
+  const ref = React.useRef<HTMLDivElement>(null);
+  const isNL = lang === "nl"; const isDE = lang === "de"; const isFR = lang === "fr";
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setShow(false);
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
+
+  const socials = [
+    { label: "WhatsApp", href: `https://wa.me/?text=${encodeURIComponent("Check Culirated — AI-curated recipes: https://culirated.com")}`, icon: "💬" },
+    { label: "Facebook", href: `https://www.facebook.com/sharer/sharer.php?u=https://culirated.com`, icon: "📘" },
+    { label: "X / Twitter", href: `https://x.com/intent/tweet?text=${encodeURIComponent("AI-curated recipes by real cooks")}&url=https://culirated.com`, icon: "𝕏" },
+    { label: "Pinterest", href: `https://pinterest.com/pin/create/button/?url=https://culirated.com`, icon: "📌" },
+    { label: "LinkedIn", href: `https://www.linkedin.com/sharing/share-offsite/?url=https://culirated.com`, icon: "💼" },
+    { label: "Reddit", href: `https://reddit.com/submit?url=https://culirated.com&title=${encodeURIComponent("Culirated")}`, icon: "🤖" },
+    { label: "Email", href: `mailto:?subject=${encodeURIComponent("Check Culirated")}&body=https://culirated.com`, icon: "✉️" },
+  ];
+
+  return (
+    <div ref={ref} style={{ position: "relative" }}>
+      <button onClick={() => setShow(!show)} style={{ background: "#e8581a", border: "none", borderRadius: "20px", padding: "8px 16px", cursor: "pointer", fontFamily: "monospace", fontSize: "12px", color: "#fff", fontWeight: "500" }}>
+        ↗ {isNL ? "Delen" : isDE ? "Teilen" : isFR ? "Partager" : "Share"}
+      </button>
+      {show && (
+        <div style={{ position: "absolute", bottom: "calc(100% + 8px)", right: 0, background: "#fff", borderRadius: "16px", padding: "8px", border: "1px solid rgba(180,160,120,0.2)", boxShadow: "0 12px 40px rgba(30,22,9,0.12)", zIndex: 200, minWidth: "200px" }}>
+          {socials.map(b => (
+            <a key={b.label} href={b.href} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "10px", padding: "9px 14px", borderRadius: "10px", fontFamily: "monospace", fontSize: "12px", color: "#1e1609" }}
+                onMouseEnter={e => (e.currentTarget.style.background = "#f5f0e8")}
+                onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
+                <span style={{ fontSize: "15px" }}>{b.icon}</span> {b.label}
+              </div>
+            </a>
+          ))}
+          <div onClick={() => { navigator.clipboard.writeText("https://culirated.com"); setShow(false); }}
+            style={{ display: "flex", alignItems: "center", gap: "10px", padding: "9px 14px", borderRadius: "10px", fontFamily: "monospace", fontSize: "12px", color: "#1e1609", cursor: "pointer", borderTop: "1px solid rgba(180,160,120,0.15)", marginTop: "4px" }}
+            onMouseEnter={e => (e.currentTarget.style.background = "#f5f0e8")}
+            onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
+            <span style={{ fontSize: "15px" }}>🔗</span> Copy link
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
