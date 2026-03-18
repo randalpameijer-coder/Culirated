@@ -91,32 +91,36 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ saved: true, id: inserted.id, imageUrl });
   }
 
-  // Step 1: check duplicate first
+  // Step 1: get similar titles via embedding for Claude to evaluate
   const embeddingText = recipe.slice(0, 500);
   const embedding = await generateEmbedding(embeddingText);
+  let similarTitles: string[] = [];
   if (embedding) {
-    const { isDuplicate, similarTitle } = await checkDuplicate(embedding);
-    if (isDuplicate) {
-      return NextResponse.json({
-        approved: false,
-        score: 0,
-        feedback: `This recipe is very similar to "${similarTitle}" which is already on Culirated. Please submit an original recipe.`,
-        criteria: [{ name: "Duplicate check", passed: false, comment: `Too similar to existing recipe: "${similarTitle}"` }],
-      });
-    }
+    const { data } = await supabase.rpc("match_recipes", {
+      query_embedding: embedding,
+      match_threshold: 0.75,
+      match_count: 5,
+    });
+    if (data) similarTitles = data.map((r: any) => r.title);
   }
 
-  // Step 1: analyse
+  // Step 1: analyse (Claude also judges duplicates)
+  const similarContext = similarTitles.length > 0
+    ? `\n\nIMPORTANT: These similar recipes already exist in the database:\n${similarTitles.map(t => `- ${t}`).join("\n")}\nIf the submitted recipe is essentially the same dish (even with minor variations like different toppings or small ingredient swaps), mark it as a duplicate.`
+    : "";
+
   const prompt = `You are a strict but helpful recipe quality checker for Culirated.
 User "${name}" submitted:
 ---
 ${recipe}
----
+---${similarContext}
 Return ONLY valid JSON, no markdown:
 {
   "approved": true/false,
   "score": 0-100,
   "feedback": "1-2 friendly sentences",
+  "duplicate": true/false,
+  "duplicate_of": "title of the existing recipe if duplicate, empty string otherwise",
   "criteria": [
     {"name":"Completeness","passed":true/false,"comment":""},
     {"name":"Ratios","passed":true/false,"comment":""},
@@ -157,6 +161,15 @@ Return ONLY valid JSON, no markdown:
     });
     const text = (message.content[0] as any).text.replace(/```json|```/g, "").trim();
     const result = JSON.parse(text);
+
+    // If Claude says it's a duplicate, override approval
+    if (result.duplicate) {
+      result.approved = false;
+      result.feedback = `This recipe is very similar to "${result.duplicate_of}" which is already on Culirated. Please submit a more original recipe.`;
+      if (!result.criteria) result.criteria = [];
+      result.criteria.unshift({ name: "Duplicate check", passed: false, comment: `Too similar to: "${result.duplicate_of}"` });
+    }
+
     return NextResponse.json({ ...result, ai_score: { score: result.score, ...result.meta } });
   } catch (err) {
     console.error(err);
