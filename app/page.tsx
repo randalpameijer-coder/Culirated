@@ -346,6 +346,7 @@ export default function Home() {
     <>
       <style>{`
         * { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body { overflow-x: hidden; max-width: 100vw; }
         body { background: #f5f0e8; font-family: Georgia, serif; color: #1e1609; }
 
         .hero-grid { display: grid; grid-template-columns: 1fr 440px; gap: 64px; align-items: center; padding: 72px 48px 56px; max-width: 1280px; margin: 0 auto; }
@@ -403,17 +404,19 @@ export default function Home() {
           .footer-links { flex-wrap: wrap; gap: 16px !important; }
         }
 
-        @media (max-width: 480px) {
+          @media (max-width: 480px) {
           .cats-grid { grid-template-columns: repeat(2, 1fr); }
           h1 { font-size: 34px !important; }
           .submit-btn span { display: none; }
+          .submit-btn { padding: 10px 12px !important; }
+          .nav-inner { gap: 8px !important; }
         }
       `}</style>
 
-      <div style={{ minHeight: "100vh", background: "#f5f0e8" }}>
+      <div style={{ minHeight: "100vh", background: "#f5f0e8", overflowX: "hidden", maxWidth: "100vw" }}>
         {/* Top bar */}
-        <div style={{ background: "#1e1609", padding: "8px 0", textAlign: "center", overflow: "hidden" }}>
-          <span style={{ color: "#c8b080", fontFamily: "monospace", fontSize: "11px", letterSpacing: "1px", whiteSpace: "nowrap" }}>{t.topbar}</span>
+        <div style={{ background: "#1e1609", padding: "8px 16px", textAlign: "center", overflow: "hidden" }}>
+          <span style={{ color: "#c8b080", fontFamily: "monospace", fontSize: "11px", letterSpacing: "1px", whiteSpace: "nowrap", display: "block", overflow: "hidden", textOverflow: "ellipsis" }}>{t.topbar}</span>
         </div>
 
         {/* Nav */}
