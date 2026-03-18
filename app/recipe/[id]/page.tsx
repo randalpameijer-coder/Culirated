@@ -315,7 +315,7 @@ function Reactions({ recipeId, initial }: { recipeId: string, initial: { want: n
   );
 }
 
-
+function ShareButtons({ title }: { title: string }) {
   const [show, setShow] = useState(false);
   const [copied, setCopied] = useState(false);
   const ref = React.useRef<HTMLDivElement>(null);
