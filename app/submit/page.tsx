@@ -74,7 +74,7 @@ export default function SubmitPage() {
           confirmedDescription: result.suggestions?.description?.improved || "",
           confirmedIngredients: result.corrections?.ingredients || [],
           confirmedSteps: result.corrections?.steps || [],
-          prep_time: result.meta?.prep_time,
+          prep_time: result.corrections?.prep_time_fixed ? result.corrections.corrected_prep_time : result.meta?.prep_time,
           servings: result.meta?.servings,
           calories: result.meta?.calories,
           difficulty: result.meta?.difficulty,
@@ -185,10 +185,17 @@ export default function SubmitPage() {
                     </div>
                   )}
 
-                  {result.corrections?.ratios_fixed && (
+                  {(result.corrections?.ratios_fixed || result.corrections?.prep_time_fixed) && (
                     <div className="section">
                       <div className="section-title">{ui.correctionApplied}</div>
-                      <p style={{ fontFamily: "Georgia, serif", fontSize: "14px", color: "#4a3820", lineHeight: 1.6 }}>{result.corrections.what_was_fixed}</p>
+                      <p style={{ fontFamily: "Georgia, serif", fontSize: "14px", color: "#4a3820", lineHeight: 1.6, marginBottom: "12px" }}>{result.corrections.what_was_fixed}</p>
+                      {result.corrections.prep_time_fixed && (
+                        <div style={{ display: "flex", alignItems: "center", gap: "8px", background: "rgba(180,120,20,0.06)", borderRadius: "10px", padding: "10px 14px" }}>
+                          <span style={{ fontFamily: "monospace", fontSize: "12px", color: "#8b5a14" }}>
+                            ⏱ {result.corrections.original_prep_time} → <strong>{result.corrections.corrected_prep_time} min</strong>
+                          </span>
+                        </div>
+                      )}
                     </div>
                   )}
 

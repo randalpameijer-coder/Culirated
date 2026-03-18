@@ -137,9 +137,12 @@ Return ONLY valid JSON, no markdown:
   },
   "corrections": {
     "ratios_fixed": true/false,
-    "what_was_fixed": "explanation or empty string",
-    "ingredients": ["corrected list — only fix mathematical errors, keep author voice"],
-    "steps": ["corrected steps — only fix logical errors, keep author voice"]
+    "prep_time_fixed": true/false,
+    "original_prep_time": "what the user submitted, empty if not fixed",
+    "corrected_prep_time": number in minutes if fixed, null otherwise,
+    "what_was_fixed": "clear friendly explanation of what was corrected and why, empty string if nothing",
+    "ingredients": ["corrected list — ONLY fix mathematical quantity errors (e.g. '50kg salt' → '50g salt'). NEVER add new ingredients. NEVER remove ingredients. Keep exact author wording."],
+    "steps": ["corrected steps — ONLY fix logical/impossible errors. NEVER add new steps. Keep author voice exactly."]
   },
   "meta": {
     "title": "clean title",
