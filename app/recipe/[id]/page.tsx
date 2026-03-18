@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, use } from "react";
+import React, { useState, useEffect, use } from "react";
 import { createClient } from "@supabase/supabase-js";
 
 const supabase = createClient(
@@ -190,31 +190,58 @@ export default function RecipePage({ params }: { params: Promise<{ id: string }>
 
 function NavShareButton({ title }: { title?: string }) {
   const [show, setShow] = useState(false);
+  const ref = React.useRef<HTMLDivElement>(null);
   const url = typeof window !== "undefined" ? window.location.href : "";
   const text = encodeURIComponent(`${title || "Recipe"} on Culirated`);
   const encodedUrl = encodeURIComponent(url);
 
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setShow(false);
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
+
+  const socials = [
+    { label: "WhatsApp", href: `https://wa.me/?text=${text}%20${encodedUrl}`, icon: "💬" },
+    { label: "Facebook", href: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`, icon: "📘" },
+    { label: "X / Twitter", href: `https://x.com/intent/tweet?text=${text}&url=${encodedUrl}`, icon: "𝕏" },
+    { label: "Pinterest", href: `https://pinterest.com/pin/create/button/?url=${encodedUrl}&description=${text}`, icon: "📌" },
+    { label: "Instagram", href: `https://www.instagram.com/`, icon: "📸", note: "Copy link below" },
+    { label: "TikTok", href: `https://www.tiktok.com/`, icon: "🎵", note: "Copy link below" },
+    { label: "LinkedIn", href: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`, icon: "💼" },
+    { label: "Reddit", href: `https://reddit.com/submit?url=${encodedUrl}&title=${text}`, icon: "🤖" },
+    { label: "Email", href: `mailto:?subject=${text}&body=${encodedUrl}`, icon: "✉️" },
+  ];
+
+  function copyLink() {
+    navigator.clipboard.writeText(url);
+    setShow(false);
+  }
+
   return (
-    <div style={{ position: "relative" }}>
+    <div ref={ref} style={{ position: "relative" }}>
       <button onClick={() => setShow(!show)} style={{ background: "#e8581a", border: "none", borderRadius: "20px", padding: "10px 16px", cursor: "pointer", fontFamily: "monospace", fontSize: "12px", color: "#fff", fontWeight: "500" }}>
         ↗ Share
       </button>
       {show && (
-        <div style={{ position: "absolute", top: "calc(100% + 8px)", right: 0, background: "#fff", borderRadius: "16px", padding: "8px", border: "1px solid rgba(180,160,120,0.2)", boxShadow: "0 12px 40px rgba(30,22,9,0.12)", zIndex: 200, minWidth: "180px" }}>
-          {[
-            { label: "WhatsApp", href: `https://wa.me/?text=${text}%20${encodedUrl}`, icon: "💬" },
-            { label: "Facebook", href: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`, icon: "📘" },
-            { label: "X", href: `https://x.com/intent/tweet?text=${text}&url=${encodedUrl}`, icon: "𝕏" },
-            { label: "Pinterest", href: `https://pinterest.com/pin/create/button/?url=${encodedUrl}&description=${text}`, icon: "📌" },
-          ].map(b => (
+        <div style={{ position: "absolute", top: "calc(100% + 8px)", right: 0, background: "#fff", borderRadius: "16px", padding: "8px", border: "1px solid rgba(180,160,120,0.2)", boxShadow: "0 12px 40px rgba(30,22,9,0.12)", zIndex: 200, minWidth: "200px" }}>
+          {socials.map(b => (
             <a key={b.label} href={b.href} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "10px", padding: "10px 14px", borderRadius: "10px", fontFamily: "monospace", fontSize: "12px", color: "#1e1609" }}
+              <div style={{ display: "flex", alignItems: "center", gap: "10px", padding: "9px 14px", borderRadius: "10px", fontFamily: "monospace", fontSize: "12px", color: "#1e1609" }}
                 onMouseEnter={e => (e.currentTarget.style.background = "#f5f0e8")}
                 onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
-                <span style={{ fontSize: "16px" }}>{b.icon}</span> {b.label}
+                <span style={{ fontSize: "15px" }}>{b.icon}</span>
+                <span>{b.label}{b.note ? <span style={{ color: "#b8a882", fontSize: "10px" }}> — {b.note}</span> : ""}</span>
               </div>
             </a>
           ))}
+          <div onClick={copyLink} style={{ display: "flex", alignItems: "center", gap: "10px", padding: "9px 14px", borderRadius: "10px", fontFamily: "monospace", fontSize: "12px", color: "#1e1609", cursor: "pointer", borderTop: "1px solid rgba(180,160,120,0.15)", marginTop: "4px" }}
+            onMouseEnter={e => (e.currentTarget.style.background = "#f5f0e8")}
+            onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
+            <span style={{ fontSize: "15px" }}>🔗</span> Copy link
+          </div>
         </div>
       )}
     </div>

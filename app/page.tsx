@@ -316,6 +316,7 @@ export default function Home() {
       const nav = document.getElementById("main-nav");
       if (nav && !nav.contains(e.target as Node)) {
         setActiveNav("");
+        setShowShare(false);
       }
     }
     document.addEventListener("mousedown", handleClick);
@@ -439,21 +440,30 @@ export default function Home() {
                 ↗ {isNL ? "Delen" : isDE ? "Teilen" : isFR ? "Partager" : "Share"}
               </button>
               {showShare && (
-                <div style={{ position: "absolute", top: "calc(100% + 8px)", right: 0, background: "#fff", borderRadius: "16px", padding: "8px", border: "1px solid rgba(180,160,120,0.2)", boxShadow: "0 12px 40px rgba(30,22,9,0.12)", zIndex: 200, minWidth: "180px" }}>
+                <div style={{ position: "absolute", top: "calc(100% + 8px)", right: 0, background: "#fff", borderRadius: "16px", padding: "8px", border: "1px solid rgba(180,160,120,0.2)", boxShadow: "0 12px 40px rgba(30,22,9,0.12)", zIndex: 200, minWidth: "200px" }}>
                   {[
-                    { label: "WhatsApp", color: "#25D366", href: `https://wa.me/?text=${encodeURIComponent("Check Culirated — AI-curated recipes by real cooks: https://culirated.com")}`, icon: "💬" },
-                    { label: "Facebook", color: "#1877F2", href: `https://www.facebook.com/sharer/sharer.php?u=https://culirated.com`, icon: "📘" },
-                    { label: "X", color: "#000", href: `https://x.com/intent/tweet?text=${encodeURIComponent("Check Culirated — AI-curated recipes by real cooks")}&url=https://culirated.com`, icon: "𝕏" },
-                    { label: "Pinterest", color: "#E60023", href: `https://pinterest.com/pin/create/button/?url=https://culirated.com`, icon: "📌" },
+                    { label: "WhatsApp", href: `https://wa.me/?text=${encodeURIComponent("Check Culirated — AI-curated recipes: https://culirated.com")}`, icon: "💬" },
+                    { label: "Facebook", href: `https://www.facebook.com/sharer/sharer.php?u=https://culirated.com`, icon: "📘" },
+                    { label: "X / Twitter", href: `https://x.com/intent/tweet?text=${encodeURIComponent("AI-curated recipes by real cooks")}&url=https://culirated.com`, icon: "𝕏" },
+                    { label: "Pinterest", href: `https://pinterest.com/pin/create/button/?url=https://culirated.com`, icon: "📌" },
+                    { label: "LinkedIn", href: `https://www.linkedin.com/sharing/share-offsite/?url=https://culirated.com`, icon: "💼" },
+                    { label: "Reddit", href: `https://reddit.com/submit?url=https://culirated.com&title=${encodeURIComponent("Culirated — AI-curated recipes")}`, icon: "🤖" },
+                    { label: "Email", href: `mailto:?subject=${encodeURIComponent("Check Culirated")}&body=https://culirated.com`, icon: "✉️" },
                   ].map(b => (
                     <a key={b.label} href={b.href} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: "10px", padding: "10px 14px", borderRadius: "10px", fontFamily: "monospace", fontSize: "12px", color: "#1e1609", cursor: "pointer" }}
+                      <div style={{ display: "flex", alignItems: "center", gap: "10px", padding: "9px 14px", borderRadius: "10px", fontFamily: "monospace", fontSize: "12px", color: "#1e1609", cursor: "pointer" }}
                         onMouseEnter={e => (e.currentTarget.style.background = "#f5f0e8")}
                         onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
-                        <span style={{ fontSize: "16px" }}>{b.icon}</span> {b.label}
+                        <span style={{ fontSize: "15px" }}>{b.icon}</span> {b.label}
                       </div>
                     </a>
                   ))}
+                  <div onClick={() => { navigator.clipboard.writeText("https://culirated.com"); setShowShare(false); }}
+                    style={{ display: "flex", alignItems: "center", gap: "10px", padding: "9px 14px", borderRadius: "10px", fontFamily: "monospace", fontSize: "12px", color: "#1e1609", cursor: "pointer", borderTop: "1px solid rgba(180,160,120,0.15)", marginTop: "4px" }}
+                    onMouseEnter={e => (e.currentTarget.style.background = "#f5f0e8")}
+                    onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
+                    <span style={{ fontSize: "15px" }}>🔗</span> Copy link
+                  </div>
                 </div>
               )}
             </div>
