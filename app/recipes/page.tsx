@@ -116,7 +116,7 @@ function RecipesContent() {
     <>
       <style>{`
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { background: #f5f0e8; }
+        body { background: #f5f0e8; overflow-x: hidden; }
         .recipe-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
         .recipe-card { border-radius: 16px; overflow: hidden; background: #faf8f3; border: 1px solid rgba(180,160,120,0.2); cursor: pointer; display: flex; flex-direction: column; transition: transform 0.2s, box-shadow 0.2s; }
         .recipe-card:hover { transform: translateY(-4px); box-shadow: 0 16px 40px rgba(30,22,9,0.12); }
@@ -134,7 +134,7 @@ function RecipesContent() {
           <span style={{ color: "#c8b080", fontFamily: "monospace", fontSize: "11px", letterSpacing: "1px" }}>👨‍🍳 RECIPES BY PEOPLE · ✦ CURATED BY AI · ONLY THE BEST GOES LIVE</span>
         </div>
 
-        <nav style={{ background: "rgba(245,240,232,0.97)", backdropFilter: "blur(20px)", borderBottom: "1px solid rgba(180,160,120,0.25)", padding: "0 48px" }}>
+        <nav style={{ background: "rgba(245,240,232,0.97)", backdropFilter: "blur(20px)", borderBottom: "1px solid rgba(180,160,120,0.25)", padding: "0 clamp(16px, 4vw, 48px)" }}>
           <div style={{ maxWidth: "1280px", margin: "0 auto", display: "flex", alignItems: "center", height: "70px", gap: "24px" }}>
             <a href="/" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: "10px" }}>
               <div style={{ width: "36px", height: "36px", borderRadius: "10px", background: "linear-gradient(135deg,#2d5a27,#6aa86e)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "18px" }}>🍃</div>
@@ -147,7 +147,7 @@ function RecipesContent() {
           </div>
         </nav>
 
-        <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "48px 48px 0" }}>
+        <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "clamp(24px, 4vw, 48px) clamp(16px, 4vw, 48px) 0" }}>
           <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: "32px" }}>
             <div>
               <h1 style={{ fontFamily: "Georgia, serif", fontSize: "42px", fontWeight: "700", color: "#1e1609", letterSpacing: "-1px", marginBottom: "6px" }}>All Recipes</h1>
@@ -199,7 +199,7 @@ function RecipesContent() {
           </div>
         </div>
 
-        <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "0 48px 80px" }}>
+        <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "0 clamp(16px, 4vw, 48px) 80px" }}>
           {loading && recipes.length === 0 ? (
             <div style={{ textAlign: "center", padding: "80px", fontFamily: "monospace", color: "#8a7355" }}>Loading recipes…</div>
           ) : recipes.length === 0 ? (

@@ -41,7 +41,7 @@ export default function RecipePage({ params }: { params: Promise<{ id: string }>
     <>
       <style>{`
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { background: #f5f0e8; }
+        body { background: #f5f0e8; overflow-x: hidden; }
         .hero-img { width: 100%; height: 480px; object-fit: cover; display: block; }
         @media (max-width: 768px) { .hero-img { height: 280px; } .content-grid { grid-template-columns: 1fr !important; } }
       `}</style>
@@ -55,7 +55,7 @@ export default function RecipePage({ params }: { params: Promise<{ id: string }>
         </div>
 
         {/* Nav */}
-        <nav style={{ background: "rgba(245,240,232,0.97)", backdropFilter: "blur(20px)", borderBottom: "1px solid rgba(180,160,120,0.25)", padding: "0 48px", position: "sticky", top: 0, zIndex: 100 }}>
+        <nav style={{ background: "rgba(245,240,232,0.97)", backdropFilter: "blur(20px)", borderBottom: "1px solid rgba(180,160,120,0.25)", padding: "0 clamp(16px, 4vw, 48px)", position: "sticky", top: 0, zIndex: 100 }}>
           <div style={{ maxWidth: "1280px", margin: "0 auto", display: "flex", alignItems: "center", height: "70px", gap: "24px" }}>
             <a href="/" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: "10px" }}>
               <div style={{ width: "36px", height: "36px", borderRadius: "10px", background: "linear-gradient(135deg,#2d5a27,#6aa86e)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "18px" }}>🍃</div>
@@ -76,7 +76,7 @@ export default function RecipePage({ params }: { params: Promise<{ id: string }>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={recipe.image_url} alt={recipe.title} className="hero-img" />
             <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(30,22,9,0.7) 0%, transparent 50%)" }} />
-            <div style={{ position: "absolute", bottom: "40px", left: "0", right: "0", maxWidth: "1280px", margin: "0 auto", padding: "0 48px" }}>
+            <div style={{ position: "absolute", bottom: "40px", left: "0", right: "0", maxWidth: "1280px", margin: "0 auto", padding: "0 clamp(16px, 4vw, 48px)" }}>
               <h1 style={{ fontFamily: "Georgia, serif", fontSize: "52px", fontWeight: "700", color: "#fff", lineHeight: 1.1, letterSpacing: "-1px", textShadow: "0 2px 20px rgba(0,0,0,0.3)" }}>
                 {recipe.title}
               </h1>
@@ -108,7 +108,7 @@ export default function RecipePage({ params }: { params: Promise<{ id: string }>
         )}
 
         {/* Content */}
-        <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "48px 48px 80px" }}>
+        <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "clamp(24px, 4vw, 48px) clamp(16px, 4vw, 48px) 80px" }}>
           {/* Meta strip */}
           <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginBottom: "16px" }}>
             {cuisine && <span style={{ fontFamily: "monospace", fontSize: "12px", color: "#8a7355", background: "rgba(140,115,80,0.12)", borderRadius: "20px", padding: "5px 14px" }}>{cuisine}</span>}

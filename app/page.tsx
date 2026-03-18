@@ -554,7 +554,7 @@ export default function Home() {
 
         {/* Categories */}
         <div style={{ background: "#1e1609" }}>
-          <div className="cats-pad" style={{ maxWidth: "1280px", margin: "0 auto", padding: "40px 48px" }}>
+          <div className="cats-pad" style={{ maxWidth: "1280px", margin: "0 auto", padding: "clamp(24px, 4vw, 40px) clamp(16px, 4vw, 48px)" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
               <h2 style={{ fontFamily: "Georgia, serif", color: "#e8dfc8", fontSize: "22px" }}>{t.catTitle}</h2>
               <a href="/recipes" style={{ textDecoration: "none", fontFamily: "monospace", fontSize: "12px", color: "#8a7355", cursor: "pointer" }}>{t.catMore}</a>
@@ -602,7 +602,7 @@ export default function Home() {
         </div>
 
         {/* Recipe grid */}
-        <div className="section-pad" style={{ maxWidth: "1280px", margin: "0 auto", padding: "64px 48px 80px" }}>
+        <div className="section-pad" style={{ maxWidth: "1280px", margin: "0 auto", padding: "clamp(32px, 5vw, 64px) clamp(16px, 4vw, 48px) 80px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: "32px", flexWrap: "wrap", gap: "16px" }}>
             <div>
               <h2 style={{ fontFamily: "Georgia, serif", fontSize: "38px", fontWeight: "700", color: "#1e1609", letterSpacing: "-0.5px" }}>{t.gridTitle}</h2>
@@ -700,7 +700,7 @@ export default function Home() {
         </div>
 
         {/* CTA */}
-        <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "72px 48px" }}>
+        <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "clamp(36px, 5vw, 72px) clamp(16px, 4vw, 48px)" }}>
           <div className="cta-inner" style={{ background: "#1e1609", borderRadius: "28px", padding: "64px" }}>
             <div className="cta-grid">
               <div>
@@ -719,7 +719,7 @@ export default function Home() {
 
         {/* Footer */}
         <footer style={{ borderTop: "1px solid rgba(180,160,120,0.2)" }}>
-          <div className="footer-inner" style={{ maxWidth: "1280px", margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "16px", padding: "40px 48px" }}>
+          <div className="footer-inner" style={{ maxWidth: "1280px", margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "16px", padding: "clamp(24px, 4vw, 40px) clamp(16px, 4vw, 48px)" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
               <span style={{ fontFamily: "Georgia, serif", fontWeight: "900", fontSize: "18px", color: "#1e1609" }}>Culirated</span>
               <span style={{ fontFamily: "monospace", fontSize: "11px", color: "#b8a882" }}>— {t.footerTag}</span>
