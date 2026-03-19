@@ -374,12 +374,15 @@ export default function Home() {
 
         @media (max-width: 768px) {
           /* Nav */
-          .nav-inner { padding: 0 16px; gap: 10px; height: 60px; }
+          .nav-inner { padding: 0 12px; gap: 8px; height: 56px; }
           .nav-links { display: none; }
           .nav-search { display: none; }
           .nav-share { display: none; }
-          .submit-btn { font-size: 0 !important; padding: 10px 14px !important; border-radius: 50% !important; width: 40px; height: 40px; display: flex !important; align-items: center; justify-content: center; }
-          .submit-btn::after { content: "+"; font-size: 20px; font-family: monospace; color: #e8f5e4; }
+          .submit-btn { padding: 10px 14px !important; border-radius: 50% !important; width: 40px; height: 40px; display: flex !important; align-items: center; justify-content: center; }
+          .submit-btn .submit-text { display: none; }
+          .submit-btn .submit-plus { display: inline; font-size: 20px; }
+          .lang-btn-text { display: none; }
+          .lang-btn { padding: 8px 10px !important; }
 
           /* Hero */
           .hero-grid { grid-template-columns: 1fr; padding: 28px 16px 36px; gap: 32px; }
@@ -399,6 +402,7 @@ export default function Home() {
           .featured-card { grid-column: span 1; display: block; }
           .featured-card .recipe-img-wrap { height: 220px; }
           .section-pad { padding: 0 16px 48px !important; }
+          .load-more-btn { width: 100% !important; }
 
           /* How it works */
           .how-grid { grid-template-columns: 1fr; gap: 32px; padding: 40px 16px; }
@@ -409,18 +413,22 @@ export default function Home() {
           .cta-grid { grid-template-columns: 1fr; gap: 20px; }
           .cta-inner { padding: 32px 20px !important; border-radius: 20px !important; }
           h2.cta-h2 { font-size: 28px !important; }
+          .cta-submit-btn { white-space: normal !important; text-align: center; }
 
           /* Footer */
           .footer-inner { flex-direction: column; gap: 16px; padding: 28px 16px !important; }
           .footer-links { flex-wrap: wrap; gap: 12px !important; }
+          .footer-tagline { display: none; }
+
+          /* Cat nav dropdowns: keep inside viewport */
+          .cat-dropdown { max-height: 260px; overflow-y: auto; }
+          .cat-nav-item:nth-last-child(-n+3) .cat-dropdown { left: auto !important; right: 0 !important; }
         }
 
         @media (max-width: 480px) {
           .cats-grid { grid-template-columns: repeat(2, 1fr); }
           h1 { font-size: 30px !important; }
-          .submit-btn { font-size: 0 !important; padding: 10px 14px !important; }
-          .submit-btn::after { content: "+"; font-size: 18px; font-family: monospace; }
-          .nav-inner { gap: 8px !important; }
+          .nav-inner { gap: 6px !important; padding: 0 10px !important; }
           .stats-row > div { flex: 1 1 40%; }
         }
       `}</style>
@@ -445,10 +453,10 @@ export default function Home() {
               <span style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", fontSize: "13px", color: "#8a7355" }}>🔍</span>
             </div>
             {!isEN && (
-              <button onClick={() => setLang("en")} style={{ flexShrink: 0, background: "rgba(30,22,9,0.05)", border: "1px solid rgba(180,160,120,0.3)", borderRadius: "20px", padding: "7px 14px", cursor: "pointer", fontFamily: "monospace", fontSize: "12px", color: "#4a3820", whiteSpace: "nowrap" }}>🇬🇧 EN</button>
+              <button onClick={() => setLang("en")} className="lang-btn" style={{ flexShrink: 0, background: "rgba(30,22,9,0.05)", border: "1px solid rgba(180,160,120,0.3)", borderRadius: "20px", padding: "7px 14px", cursor: "pointer", fontFamily: "monospace", fontSize: "12px", color: "#4a3820", whiteSpace: "nowrap" }}>🇬🇧 <span className="lang-btn-text">EN</span></button>
             )}
             {isEN && localLang !== "en" && (
-              <button onClick={() => setLang(localLang)} style={{ flexShrink: 0, background: "rgba(30,22,9,0.05)", border: "1px solid rgba(180,160,120,0.3)", borderRadius: "20px", padding: "7px 14px", cursor: "pointer", fontFamily: "monospace", fontSize: "12px", color: "#4a3820", whiteSpace: "nowrap" }}>{LOCAL_NAMES[localLang]}</button>
+              <button onClick={() => setLang(localLang)} className="lang-btn" style={{ flexShrink: 0, background: "rgba(30,22,9,0.05)", border: "1px solid rgba(180,160,120,0.3)", borderRadius: "20px", padding: "7px 14px", cursor: "pointer", fontFamily: "monospace", fontSize: "12px", color: "#4a3820", whiteSpace: "nowrap" }}>{LOCAL_NAMES[localLang].split(" ")[0]} <span className="lang-btn-text">{LOCAL_NAMES[localLang].split(" ").slice(1).join(" ")}</span></button>
             )}
             <div className="nav-share" style={{ position: "relative", flexShrink: 0 }}>
               <button onClick={() => setShowShare(!showShare)} style={{ background: "#e8581a", border: "none", borderRadius: "20px", padding: "10px 16px", cursor: "pointer", fontFamily: "monospace", fontSize: "12px", color: "#fff", whiteSpace: "nowrap", fontWeight: "500" }}>
@@ -485,7 +493,10 @@ export default function Home() {
               )}
             </div>
             <a href="/submit" style={{ textDecoration: "none", flexShrink: 0 }}>
-              <button className="submit-btn" style={{ background: "#3a7a32", color: "#e8f5e4", border: "none", borderRadius: "24px", padding: "10px 18px", cursor: "pointer", fontFamily: "monospace", fontSize: "12px", fontWeight: "500", whiteSpace: "nowrap" }}>{t.submit}</button>
+              <button className="submit-btn" style={{ background: "#3a7a32", color: "#e8f5e4", border: "none", borderRadius: "24px", padding: "10px 18px", cursor: "pointer", fontFamily: "monospace", fontSize: "12px", fontWeight: "500", whiteSpace: "nowrap", display: "flex", alignItems: "center", justifyContent: "center", gap: "4px" }}>
+                <span className="submit-plus" style={{ display: "none" }}>+</span>
+                <span className="submit-text">{t.submit}</span>
+              </button>
             </a>
           </div>
           {/* Category nav row with dropdowns */}
@@ -498,7 +509,7 @@ export default function Home() {
                   {cat.icon} {cat.label} <span style={{ fontSize: "9px", opacity: 0.6, transform: activeNav === cat.label ? "rotate(180deg)" : "none", display: "inline-block", transition: "transform 0.2s" }}>▾</span>
                 </button>
                 {activeNav === cat.label && (
-                  <div style={{ position: "absolute", top: "calc(100% + 4px)", left: "0", background: "#fff", border: "1px solid rgba(180,160,120,0.2)", borderRadius: "12px", boxShadow: "0 12px 40px rgba(30,22,9,0.15)", padding: "8px", minWidth: "180px", zIndex: 300, display: "grid", gridTemplateColumns: cat.items.length > 6 ? "1fr 1fr" : "1fr", gap: "2px" }}>
+                  <div className="cat-dropdown" style={{ position: "absolute", top: "calc(100% + 4px)", left: "0", background: "#fff", border: "1px solid rgba(180,160,120,0.2)", borderRadius: "12px", boxShadow: "0 12px 40px rgba(30,22,9,0.15)", padding: "8px", minWidth: "180px", zIndex: 300, display: "grid", gridTemplateColumns: cat.items.length > 6 ? "1fr 1fr" : "1fr", gap: "2px" }}>
                     {cat.items.map((item) => (
                       <a key={item} href={`/recipes?${cat.label.toLowerCase()}=${encodeURIComponent(item)}`}
                         style={{ display: "block", padding: "8px 12px", fontFamily: "monospace", fontSize: "12px", color: "#4a3820", textDecoration: "none", borderRadius: "8px", whiteSpace: "nowrap", transition: "background 0.15s" }}
@@ -668,18 +679,18 @@ export default function Home() {
                   </a>
                 ))
             ) : (
-              <div style={{ gridColumn: "span 2", textAlign: "center", padding: "60px", color: "#8a7355", fontFamily: "monospace", fontSize: "13px" }}>
+              <div style={{ gridColumn: "1 / -1", textAlign: "center", padding: "60px", color: "#8a7355", fontFamily: "monospace", fontSize: "13px" }}>
                 Loading recipes…
               </div>
             )}
           </div>
           <div style={{ textAlign: "center", marginTop: "48px" }}>
-            <button style={{ background: "transparent", color: "#1e1609", border: "1.5px solid rgba(30,22,9,0.25)", borderRadius: "28px", padding: "14px 40px", fontFamily: "monospace", fontSize: "13px", cursor: "pointer" }}>{t.loadMore}</button>
+            <button className="load-more-btn" style={{ background: "transparent", color: "#1e1609", border: "1.5px solid rgba(30,22,9,0.25)", borderRadius: "28px", padding: "14px 40px", fontFamily: "monospace", fontSize: "13px", cursor: "pointer" }}>{t.loadMore}</button>
           </div>
         </div>
 
         {/* How it works */}
-        <div style={{ background: "linear-gradient(135deg,#2d5a27,#1a3d16)" }}>
+        <div id="how-it-works" style={{ background: "linear-gradient(135deg,#2d5a27,#1a3d16)" }}>
           <div className="how-grid">
             <div>
               <div style={{ fontFamily: "monospace", fontSize: "12px", color: "#9fcf9a", letterSpacing: "2px", marginBottom: "20px" }}>{t.howLabel}</div>
@@ -725,7 +736,7 @@ export default function Home() {
                 <p style={{ color: "#8a7355", fontSize: "16px", lineHeight: 1.75, maxWidth: "520px" }}>{t.ctaSub}</p>
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: "10px", alignItems: "center" }}>
-                <a href="/submit" style={{ textDecoration: "none" }}><button style={{ background: "#3a7a32", color: "#e8f5e4", border: "none", borderRadius: "24px", padding: "16px 32px", fontFamily: "monospace", fontSize: "14px", cursor: "pointer", fontWeight: "500", whiteSpace: "nowrap" }}>{t.ctaBtn}</button></a>
+                <a href="/submit" style={{ textDecoration: "none" }}><button className="cta-submit-btn" style={{ background: "#3a7a32", color: "#e8f5e4", border: "none", borderRadius: "24px", padding: "16px 32px", fontFamily: "monospace", fontSize: "14px", cursor: "pointer", fontWeight: "500" }}>{t.ctaBtn}</button></a>
                 <span style={{ fontFamily: "monospace", fontSize: "11px", color: "#6b5840", textAlign: "center" }}>{t.ctaNote}</span>
               </div>
             </div>
@@ -737,7 +748,7 @@ export default function Home() {
           <div className="footer-inner" style={{ maxWidth: "1280px", margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "16px", padding: "clamp(24px, 4vw, 40px) clamp(16px, 4vw, 48px)" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
               <span style={{ fontFamily: "Georgia, serif", fontWeight: "900", fontSize: "18px", color: "#1e1609" }}>Culirated</span>
-              <span style={{ fontFamily: "monospace", fontSize: "11px", color: "#b8a882" }}>— {t.footerTag}</span>
+              <span className="footer-tagline" style={{ fontFamily: "monospace", fontSize: "11px", color: "#b8a882" }}>— {t.footerTag}</span>
             </div>
             <div className="footer-links" style={{ display: "flex", gap: "24px", flexWrap: "wrap", alignItems: "center" }}>
               {t.footerLinks.map((l: string) => (
