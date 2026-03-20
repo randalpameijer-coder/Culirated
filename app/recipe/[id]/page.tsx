@@ -43,30 +43,34 @@ export default function RecipePage({ params }: { params: Promise<{ id: string }>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { background: #f5f0e8; overflow-x: hidden; }
         .hero-img { width: 100%; height: 480px; object-fit: cover; display: block; }
-        @media (max-width: 768px) { .hero-img { height: 280px; } .content-grid { grid-template-columns: 1fr !important; } }
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 48px; }
+        .ai-score-badge { position: absolute; top: 24px; right: 48px; background: rgba(255,255,255,0.95); backdrop-filter: blur(12px); border-radius: 16px; padding: 14px 18px; text-align: center; }
+        @media (max-width: 768px) {
+          .hero-img { height: 280px; }
+          .content-grid { grid-template-columns: 1fr !important; }
+          .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 32px; }
+          .ai-score-badge { top: 16px; right: 16px; padding: 10px 14px; }
+        }
       `}</style>
 
       <div style={{ minHeight: "100vh", background: "#f5f0e8" }}>
         {/* Top bar */}
-        <div style={{ background: "#1e1609", padding: "8px 0", textAlign: "center" }}>
-          <span style={{ color: "#c8b080", fontFamily: "monospace", fontSize: "11px", letterSpacing: "1px" }}>
+        <div style={{ background: "#1e1609", padding: "8px 0", textAlign: "center", overflow: "hidden" }}>
+          <span style={{ color: "#c8b080", fontFamily: "monospace", fontSize: "11px", letterSpacing: "1px", whiteSpace: "nowrap" }}>
             👨‍🍳 RECIPES BY PEOPLE · ✦ CURATED BY AI · ONLY THE BEST GOES LIVE
           </span>
         </div>
 
-        {/* Nav */}
+        {/* Nav — share button only, no submit button */}
         <nav style={{ background: "rgba(245,240,232,0.97)", backdropFilter: "blur(20px)", borderBottom: "1px solid rgba(180,160,120,0.25)", padding: "0 clamp(16px, 4vw, 48px)", position: "sticky", top: 0, zIndex: 100 }}>
-          <div style={{ maxWidth: "1280px", margin: "0 auto", display: "flex", alignItems: "center", height: "70px", gap: "24px" }}>
-            <a href="/" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: "10px" }}>
-              <div style={{ width: "36px", height: "36px", borderRadius: "10px", background: "linear-gradient(135deg,#2d5a27,#6aa86e)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "18px" }}>🍃</div>
-              <span style={{ fontFamily: "Georgia, serif", fontWeight: "900", fontSize: "22px", color: "#1e1609" }}>Culirated</span>
+          <div style={{ maxWidth: "1280px", margin: "0 auto", display: "flex", alignItems: "center", height: "60px", gap: "16px" }}>
+            <a href="/" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: "10px", flexShrink: 0 }}>
+              <div style={{ width: "32px", height: "32px", borderRadius: "10px", background: "linear-gradient(135deg,#2d5a27,#6aa86e)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "16px" }}>🍃</div>
+              <span style={{ fontFamily: "Georgia, serif", fontWeight: "900", fontSize: "20px", color: "#1e1609" }}>Culirated</span>
             </a>
-            <a href="/" style={{ fontFamily: "monospace", fontSize: "12px", color: "#8a7355", textDecoration: "none" }}>← All recipes</a>
+            <a href="/recipes" style={{ fontFamily: "monospace", fontSize: "12px", color: "#8a7355", textDecoration: "none", whiteSpace: "nowrap" }}>← All recipes</a>
             <div style={{ flex: 1 }} />
             <NavShareButton title={recipe?.title || ""} />
-            <a href="/submit" style={{ textDecoration: "none" }}>
-              <button style={{ background: "#3a7a32", color: "#e8f5e4", border: "none", borderRadius: "24px", padding: "10px 18px", cursor: "pointer", fontFamily: "monospace", fontSize: "12px", fontWeight: "500" }}>+ Submit Recipe</button>
-            </a>
           </div>
         </nav>
 
@@ -77,14 +81,13 @@ export default function RecipePage({ params }: { params: Promise<{ id: string }>
             <img src={recipe.image_url} alt={recipe.title} className="hero-img" />
             <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(30,22,9,0.7) 0%, transparent 50%)" }} />
             <div style={{ position: "absolute", bottom: "40px", left: "0", right: "0", maxWidth: "1280px", margin: "0 auto", padding: "0 clamp(16px, 4vw, 48px)" }}>
-              <h1 style={{ fontFamily: "Georgia, serif", fontSize: "52px", fontWeight: "700", color: "#fff", lineHeight: 1.1, letterSpacing: "-1px", textShadow: "0 2px 20px rgba(0,0,0,0.3)" }}>
+              <h1 style={{ fontFamily: "Georgia, serif", fontSize: "clamp(28px, 5vw, 52px)", fontWeight: "700", color: "#fff", lineHeight: 1.1, letterSpacing: "-1px", textShadow: "0 2px 20px rgba(0,0,0,0.3)" }}>
                 {recipe.title}
               </h1>
               {recipe.description && (
-                <p style={{ fontFamily: "Georgia, serif", fontSize: "18px", color: "rgba(255,255,255,0.85)", marginTop: "12px", maxWidth: "640px", lineHeight: 1.5 }}>{recipe.description}</p>
+                <p style={{ fontFamily: "Georgia, serif", fontSize: "clamp(15px, 2vw, 18px)", color: "rgba(255,255,255,0.85)", marginTop: "12px", maxWidth: "640px", lineHeight: 1.5 }}>{recipe.description}</p>
               )}
-              {/* Reaction totals on image */}
-              <div style={{ display: "flex", gap: "12px", marginTop: "16px" }}>
+              <div style={{ display: "flex", gap: "12px", marginTop: "16px", flexWrap: "wrap" }}>
                 {[
                   { icon: "😍", count: recipe.reactions_want || 0 },
                   { icon: "✅", count: recipe.reactions_made || 0 },
@@ -98,7 +101,7 @@ export default function RecipePage({ params }: { params: Promise<{ id: string }>
               </div>
             </div>
             {score && (
-              <div style={{ position: "absolute", top: "24px", right: "48px", background: "rgba(255,255,255,0.95)", backdropFilter: "blur(12px)", borderRadius: "16px", padding: "14px 18px", textAlign: "center" }}>
+              <div className="ai-score-badge">
                 <div style={{ fontFamily: "monospace", fontSize: "10px", color: "#8a7355", letterSpacing: "1px", marginBottom: "4px" }}>AI SCORE</div>
                 <div style={{ fontFamily: "Georgia, serif", fontSize: "28px", fontWeight: "700", color: "#2d5a27", lineHeight: 1 }}>{score}</div>
                 <div style={{ fontFamily: "monospace", fontSize: "10px", color: "#8a7355" }}>/100</div>
@@ -141,8 +144,8 @@ export default function RecipePage({ params }: { params: Promise<{ id: string }>
             </div>
           )}
 
-          {/* Stats */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "16px", marginBottom: "48px" }}>
+          {/* Stats — 4 col desktop, 2 col mobile via CSS */}
+          <div className="stats-grid">
             {[
               { label: "Prep time", value: recipe.prep_time ? `${recipe.prep_time} min` : "—", icon: "⏱️" },
               { label: "Servings", value: recipe.servings ? `${recipe.servings} people` : "—", icon: "👥" },
@@ -261,7 +264,7 @@ function NavShareButton({ title }: { title?: string }) {
         ↗ {label}
       </button>
       {show && (
-        <div style={{ position: "absolute", top: "calc(100% + 8px)", right: 0, background: "#fff", borderRadius: "16px", padding: "8px", border: "1px solid rgba(180,160,120,0.2)", boxShadow: "0 12px 40px rgba(30,22,9,0.12)", zIndex: 200, minWidth: "200px" }}>
+        <div style={{ position: "absolute", top: "calc(100% + 8px)", right: 0, background: "#fff", borderRadius: "16px", padding: "8px", border: "1px solid rgba(180,160,120,0.2)", boxShadow: "0 12px 40px rgba(30,22,9,0.12)", zIndex: 200, minWidth: "200px", maxWidth: "calc(100vw - 32px)" }}>
           {socials.map(b => (
             <a key={b.label} href={b.href} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "10px", padding: "9px 14px", borderRadius: "10px", fontFamily: "monospace", fontSize: "12px", color: "#1e1609" }}
@@ -377,7 +380,7 @@ function ShareButtons({ title }: { title: string }) {
         ↗ {shareLabel}
       </button>
       {show && (
-        <div style={{ position: "absolute", bottom: "calc(100% + 8px)", left: 0, background: "#fff", borderRadius: "16px", padding: "8px", border: "1px solid rgba(180,160,120,0.2)", boxShadow: "0 12px 40px rgba(30,22,9,0.12)", zIndex: 200, minWidth: "200px" }}>
+        <div style={{ position: "absolute", bottom: "calc(100% + 8px)", left: 0, background: "#fff", borderRadius: "16px", padding: "8px", border: "1px solid rgba(180,160,120,0.2)", boxShadow: "0 12px 40px rgba(30,22,9,0.12)", zIndex: 200, minWidth: "200px", maxWidth: "calc(100vw - 32px)" }}>
           {socials.map(b => (
             <a key={b.label} href={b.href} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "10px", padding: "9px 14px", borderRadius: "10px", fontFamily: "monospace", fontSize: "12px", color: "#1e1609" }}

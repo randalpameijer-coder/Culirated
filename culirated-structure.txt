@@ -1,0 +1,1268 @@
+// === submit\page.tsx ===
+"use client";
+
+import { useState } from "react";
+
+type Step = "form" | "analysing" | "review" | "saving" | "done";
+
+export default function SubmitPage() {
+  const [name, setName] = useState("");
+  const [recipe, setRecipe] = useState("");
+  const [step, setStep] = useState<Step>("form");
+  const [result, setResult] = useState<any>(null);
+  const [savedId, setSavedId] = useState<string>("");
+  const [useImprovedTitle, setUseImprovedTitle] = useState(true);
+  const [customTitle, setCustomTitle] = useState("");
+
+  const lang = typeof navigator !== "undefined" ? navigator.language : "en";
+  const isNL = lang.startsWith("nl");
+  const isDE = lang.startsWith("de");
+  const isFR = lang.startsWith("fr");
+
+  const ui = {
+    approved: isNL ? "Ziet er goed uit!" : isDE ? "Sieht gut aus!" : isFR ? "C'est bon!" : "Looks good!",
+    notApproved: isNL ? "Al aanwezig." : isDE ? "Bereits vorhanden." : isFR ? "Déjà présent." : "Already exists.",
+    notApprovedGeneral: isNL ? "Nog niet goedgekeurd." : isDE ? "Noch nicht genehmigt." : isFR ? "Pas encore approuvé." : "Not approved yet.",
+    qualityCheck: isNL ? "Kwaliteitscheck" : isDE ? "Qualitätsprüfung" : isFR ? "Contrôle qualité" : "Quality check",
+    titleSuggestion: isNL ? "✦ Titelvoorstel" : isDE ? "✦ Titelvorschlag" : isFR ? "✦ Suggestion de titre" : "✦ Title suggestion",
+    titleQ: isNL ? "AI stelt een beter vindbare titel voor. Welke verkies je?" : isDE ? "KI schlägt einen besser auffindbaren Titel vor." : isFR ? "L'IA suggère un titre plus facile à trouver." : "AI suggests a more findable title. Which do you prefer?",
+    keepMine: isNL ? "Mijn versie houden" : isDE ? "Meine behalten" : isFR ? "Garder la mienne" : "Keep mine",
+    correctionApplied: isNL ? "⚠️ Correctie toegepast" : isDE ? "⚠️ Korrektur angewendet" : isFR ? "⚠️ Correction appliquée" : "⚠️ Correction applied",
+    whatNext: isNL ? "WAT GEBEURT ER NU" : isDE ? "WAS PASSIERT ALS NÄCHSTES" : isFR ? "CE QUI SE PASSE ENSUITE" : "WHAT HAPPENS NEXT",
+    whatNextText: isNL ? "Jouw recept gaat meteen live. Een professionele foodfoto wordt automatisch gegenereerd. Het recept blijft van jou." : isDE ? "Dein Rezept wird sofort veröffentlicht. Ein professionelles Foodfoto wird automatisch generiert." : isFR ? "Votre recette est publiée immédiatement avec une photo générée automatiquement." : "Your recipe goes live immediately with a professional food photo generated automatically.",
+    publish: isNL ? "✦ Publiceer mijn recept →" : isDE ? "✦ Rezept veröffentlichen →" : isFR ? "✦ Publier ma recette →" : "✦ Publish my recipe →",
+    adjust: isNL ? "← Aanpassen en opnieuw insturen" : isDE ? "← Anpassen und erneut einreichen" : isFR ? "← Ajuster et resoumettre" : "← Adjust and resubmit",
+    publishing: isNL ? "Recept publiceren…\nfoto genereren" : isDE ? "Rezept veröffentlichen…\nFoto generieren" : isFR ? "Publication de la recette…\ngénération de la photo" : "Publishing your recipe…\ngenerating photo",
+    live: isNL ? "Jouw recept staat live!" : isDE ? "Dein Rezept ist live!" : isFR ? "Votre recette est en ligne!" : "Your recipe is live!",
+    liveText: isNL ? "Het staat nu op Culirated — met een verse foodfoto en AI-kwaliteitsbadge." : isDE ? "Es ist jetzt auf Culirated — mit einem frischen Foodfoto und KI-Qualitätsabzeichen." : isFR ? "Il est maintenant sur Culirated — avec une photo et un badge qualité IA." : "It's now visible on Culirated — with a fresh food photo and AI quality badge.",
+    view: isNL ? "Bekijk mijn recept →" : isDE ? "Mein Rezept ansehen →" : isFR ? "Voir ma recette →" : "View my recipe →",
+    submitAnother: isNL ? "Nog een recept insturen" : isDE ? "Ein weiteres Rezept einreichen" : isFR ? "Soumettre une autre recette" : "Submit another",
+  };
+
+  async function handleSubmit() {
+    if (!name.trim() || !recipe.trim()) return;
+    setStep("analysing");
+    try {
+      const res = await fetch("/api/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, recipe, lang: navigator.language }),
+      });
+      const data = await res.json();
+      setResult(data);
+      setCustomTitle(data.suggestions?.title?.original || data.meta?.title || "");
+      setUseImprovedTitle(data.suggestions?.title?.changed || false);
+      setStep("review");
+    } catch {
+      setResult({ approved: false, feedback: "Something went wrong. Please try again." });
+      setStep("review");
+    }
+  }
+
+  async function handleConfirm() {
+    if (!result?.approved) return;
+    setStep("saving");
+    const finalTitle = useImprovedTitle
+      ? (result.suggestions?.title?.improved || result.meta?.title)
+      : customTitle;
+    try {
+      const res = await fetch("/api/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name, recipe, confirm: true, lang: navigator.language,
+          confirmedTitle: finalTitle,
+          confirmedDescription: result.suggestions?.description?.improved || "",
+          confirmedIngredients: result.corrections?.ingredients || [],
+          confirmedSteps: result.corrections?.steps || [],
+          prep_time: result.corrections?.prep_time_fixed ? result.corrections.corrected_prep_time : result.meta?.prep_time,
+          servings: result.meta?.servings,
+          calories: result.meta?.calories,
+          difficulty: result.meta?.difficulty,
+          cuisine: result.meta?.cuisine,
+          ai_score: result.ai_score,
+        }),
+      });
+      const data = await res.json();
+      if (data.saved) { setSavedId(data.id); setStep("done"); }
+      else setStep("review");
+    } catch { setStep("review"); }
+  }
+
+  return (
+    <>
+      <style>{`
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background: #f5f0e8; }
+        .wrap { min-height: 100vh; background: #f5f0e8; padding: 48px 24px; }
+        .card { max-width: 720px; margin: 0 auto; background: #faf8f3; border-radius: 24px; padding: 48px; border: 1px solid rgba(180,160,120,0.2); }
+        label { display: block; font-family: monospace; font-size: 12px; color: #6b5840; letter-spacing: 0.8px; margin-bottom: 8px; }
+        input, textarea { width: 100%; background: #f5f0e8; border: 1px solid rgba(180,160,120,0.3); border-radius: 12px; padding: 14px 16px; font-family: Georgia, serif; font-size: 15px; color: #1e1609; outline: none; }
+        input:focus, textarea:focus { border-color: #4a7a3d; background: #fff; }
+        textarea { min-height: 280px; resize: vertical; line-height: 1.6; }
+        .field { margin-bottom: 24px; }
+        .btn-primary { background: #3a7a32; color: #e8f5e4; border: none; border-radius: 24px; padding: 14px 28px; font-family: monospace; font-size: 13px; font-weight: 500; cursor: pointer; width: 100%; margin-top: 8px; }
+        .btn-primary:disabled { background: #a0c8a0; cursor: not-allowed; }
+        .btn-secondary { background: transparent; color: #3a7a32; border: 1.5px solid #3a7a32; border-radius: 24px; padding: 12px 24px; font-family: monospace; font-size: 13px; cursor: pointer; }
+        .loading-icon { font-size: 28px; animation: spin 1.5s linear infinite; display: inline-block; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .section { background: #f5f0e8; border-radius: 14px; padding: 20px 24px; margin-bottom: 16px; border: 1px solid rgba(180,160,120,0.2); }
+        .section-title { font-family: monospace; font-size: 11px; color: #8a7355; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 12px; }
+        .toggle-row { display: flex; gap: 10px; margin-bottom: 8px; }
+        .toggle-btn { flex: 1; padding: 10px; border-radius: 10px; font-family: monospace; font-size: 12px; cursor: pointer; border: 1px solid rgba(180,160,120,0.3); background: transparent; color: #6b5840; transition: all 0.15s; }
+        .toggle-btn.active { background: #2d5a27; color: #e8f5e4; border-color: #2d5a27; }
+        @media (max-width: 600px) { .card { padding: 28px 20px; } }
+      `}</style>
+
+      <div className="wrap">
+        <div className="card">
+          <a href="/" style={{ textDecoration: "none", display: "inline-flex", alignItems: "center", gap: "8px", marginBottom: "40px" }}>
+            <div style={{ width: "28px", height: "28px", borderRadius: "8px", background: "linear-gradient(135deg,#2d5a27,#6aa86e)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "14px" }}>🍃</div>
+            <span style={{ fontFamily: "Georgia, serif", fontWeight: "900", fontSize: "18px", color: "#1e1609" }}>Culirated</span>
+          </a>
+
+          {step === "form" && (
+            <>
+              <h1 style={{ fontFamily: "Georgia, serif", fontSize: "36px", fontWeight: "700", color: "#1e1609", marginBottom: "8px" }}>Submit your recipe.</h1>
+              <p style={{ fontFamily: "Georgia, serif", color: "#8a7355", fontSize: "15px", lineHeight: 1.6, marginBottom: "36px" }}>
+                Write or paste your recipe. AI checks it and may suggest small improvements — you decide what goes live.
+              </p>
+              <div className="field">
+                <label>YOUR NAME</label>
+                <input type="text" placeholder="e.g. Marco V." value={name} onChange={e => setName(e.target.value)} />
+              </div>
+              <div className="field">
+                <label>YOUR RECIPE</label>
+                <textarea placeholder={"Paste or write your recipe here.\n\nExample:\nSpaghetti Carbonara (4 persons)\n\nIngredients:\n- 400g spaghetti\n...\n\nSteps:\n1. Cook pasta..."} value={recipe} onChange={e => setRecipe(e.target.value)} />
+              </div>
+              <button className="btn-primary" onClick={handleSubmit} disabled={!name.trim() || !recipe.trim()}>
+                ✦ Submit — AI checks it now
+              </button>
+            </>
+          )}
+
+          {step === "analysing" && (
+            <div style={{ textAlign: "center", padding: "60px 0" }}>
+              <div className="loading-icon">✦</div>
+              <p style={{ fontFamily: "monospace", fontSize: "13px", color: "#8a7355", marginTop: "20px" }}>Analysing your recipe…<br />checking ratios, logic and SEO</p>
+            </div>
+          )}
+
+          {step === "review" && result && (
+            <>
+              <div style={{ display: "flex", alignItems: "center", gap: "16px", marginBottom: "32px" }}>
+                <div style={{ fontSize: "40px" }}>{result.approved ? "🟢" : "🔴"}</div>
+                <div>
+                  <div style={{ fontFamily: "Georgia, serif", fontSize: "24px", fontWeight: "700", color: result.approved ? "#2d5a27" : "#8b3020" }}>
+                    {result.approved ? ui.approved : (result.duplicate ? ui.notApproved : ui.notApprovedGeneral)}
+                  </div>
+                  {result.score && <div style={{ fontFamily: "monospace", fontSize: "12px", color: "#8a7355", marginTop: "4px" }}>AI Score: {result.score}/100</div>}
+                </div>
+              </div>
+              <p style={{ fontFamily: "Georgia, serif", fontSize: "15px", color: "#4a3820", lineHeight: 1.65, marginBottom: "28px" }}>{result.feedback}</p>
+
+              {result.criteria && (
+                <div className="section">
+                  <div className="section-title">{ui.qualityCheck}</div>
+                  {result.criteria.map((c: any) => (
+                    <div key={c.name} style={{ display: "flex", gap: "10px", marginBottom: "10px", alignItems: "flex-start" }}>
+                      <span style={{ fontSize: "14px", flexShrink: 0 }}>{c.passed ? "✅" : "❌"}</span>
+                      <span style={{ fontFamily: "monospace", fontSize: "12px", color: "#4a3820" }}><strong>{c.name}:</strong> {c.comment}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {result.approved && (
+                <>
+                  {result.suggestions?.title?.changed && (
+                    <div className="section">
+                      <div className="section-title">{ui.titleSuggestion}</div>
+                      <p style={{ fontFamily: "monospace", fontSize: "11px", color: "#8a7355", marginBottom: "12px" }}>{ui.titleQ}</p>
+                      <div className="toggle-row">
+                        <button className={`toggle-btn ${useImprovedTitle ? "active" : ""}`} onClick={() => setUseImprovedTitle(true)}>✦ {result.suggestions.title.improved}</button>
+                        <button className={`toggle-btn ${!useImprovedTitle ? "active" : ""}`} onClick={() => setUseImprovedTitle(false)}>{ui.keepMine}: {result.suggestions.title.original}</button>
+                      </div>
+                    </div>
+                  )}
+
+                  {(result.corrections?.ratios_fixed || result.corrections?.prep_time_fixed) && (
+                    <div className="section">
+                      <div className="section-title">{ui.correctionApplied}</div>
+                      <p style={{ fontFamily: "Georgia, serif", fontSize: "14px", color: "#4a3820", lineHeight: 1.6, marginBottom: "12px" }}>{result.corrections.what_was_fixed}</p>
+                      {result.corrections.prep_time_fixed && (
+                        <div style={{ display: "flex", alignItems: "center", gap: "8px", background: "rgba(180,120,20,0.06)", borderRadius: "10px", padding: "10px 14px" }}>
+                          <span style={{ fontFamily: "monospace", fontSize: "12px", color: "#8b5a14" }}>
+                            ⏱ {result.corrections.original_prep_time} → <strong>{result.corrections.corrected_prep_time} min</strong>
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  <div style={{ background: "rgba(74,122,61,0.06)", borderRadius: "14px", padding: "20px 24px", marginBottom: "24px", border: "1px solid rgba(74,122,61,0.15)" }}>
+                    <div style={{ fontFamily: "monospace", fontSize: "11px", color: "#2d5a27", letterSpacing: "1px", marginBottom: "8px" }}>{ui.whatNext}</div>
+                    <p style={{ fontFamily: "Georgia, serif", fontSize: "14px", color: "#4a3820", lineHeight: 1.65 }}>{ui.whatNextText}</p>
+                  </div>
+                  <button className="btn-primary" onClick={handleConfirm}>{ui.publish}</button>
+                </>
+              )}
+
+              {!result.approved && (
+                <button className="btn-secondary" onClick={() => setStep("form")} style={{ width: "100%", marginTop: "8px" }}>{ui.adjust}</button>
+              )}
+            </>
+          )}
+
+          {step === "saving" && (
+            <div style={{ textAlign: "center", padding: "60px 0" }}>
+              <div className="loading-icon">🍃</div>
+              <p style={{ fontFamily: "monospace", fontSize: "13px", color: "#8a7355", marginTop: "20px", whiteSpace: "pre-line" }}>{ui.publishing}</p>
+            </div>
+          )}
+
+          {step === "done" && (
+            <div style={{ textAlign: "center", padding: "40px 0" }}>
+              <div style={{ fontSize: "52px", marginBottom: "20px" }}>🎉</div>
+              <h2 style={{ fontFamily: "Georgia, serif", fontSize: "28px", fontWeight: "700", color: "#1e1609", marginBottom: "12px" }}>{ui.live}</h2>
+              <p style={{ fontFamily: "Georgia, serif", fontSize: "15px", color: "#8a7355", lineHeight: 1.6, marginBottom: "32px" }}>{ui.liveText}</p>
+              <div style={{ display: "flex", gap: "12px", justifyContent: "center", flexWrap: "wrap" }}>
+                <a href={`/recipe/${savedId}`} style={{ textDecoration: "none" }}>
+                  <button className="btn-primary" style={{ width: "auto", padding: "12px 24px" }}>{ui.view}</button>
+                </a>
+                <button className="btn-secondary" onClick={() => { setStep("form"); setName(""); setRecipe(""); setResult(null); }}>{ui.submitAnother}</button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </>
+  );
+}
+
+// === recipe\[id]\page.tsx ===
+"use client";
+
+import React, { useState, useEffect, use } from "react";
+import { createClient } from "@supabase/supabase-js";
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
+
+export default function RecipePage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
+  const [recipe, setRecipe] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetch() {
+      const { data } = await supabase
+        .from("recipes")
+        .select("*")
+        .eq("id", id)
+        .single();
+      setRecipe(data);
+      setLoading(false);
+    }
+    fetch();
+  }, [id]);
+
+  if (loading) return <div style={{ padding: "80px", textAlign: "center", fontFamily: "monospace", color: "#8a7355" }}>Loading…</div>;
+  if (!recipe) return <div style={{ padding: "80px", textAlign: "center", fontFamily: "monospace", color: "#8a7355" }}>Recipe not found.</div>;
+
+  const ingredients = Array.isArray(recipe.ingredients) ? recipe.ingredients : [];
+  const steps = Array.isArray(recipe.steps) ? recipe.steps : [];
+  const score = recipe.ai_score?.score;
+  const cuisine = recipe.ai_score?.cuisine;
+  const diet = recipe.ai_score?.diet || [];
+  const course = recipe.ai_score?.course;
+  const method = recipe.ai_score?.method;
+
+  return (
+    <>
+      <style>{`
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background: #f5f0e8; overflow-x: hidden; }
+        .hero-img { width: 100%; height: 480px; object-fit: cover; display: block; }
+        @media (max-width: 768px) { .hero-img { height: 280px; } .content-grid { grid-template-columns: 1fr !important; } }
+      `}</style>
+
+      <div style={{ minHeight: "100vh", background: "#f5f0e8" }}>
+        {/* Top bar */}
+        <div style={{ background: "#1e1609", padding: "8px 0", textAlign: "center" }}>
+          <span style={{ color: "#c8b080", fontFamily: "monospace", fontSize: "11px", letterSpacing: "1px" }}>
+            👨‍🍳 RECIPES BY PEOPLE · ✦ CURATED BY AI · ONLY THE BEST GOES LIVE
+          </span>
+        </div>
+
+        {/* Nav */}
+        <nav style={{ background: "rgba(245,240,232,0.97)", backdropFilter: "blur(20px)", borderBottom: "1px solid rgba(180,160,120,0.25)", padding: "0 clamp(16px, 4vw, 48px)", position: "sticky", top: 0, zIndex: 100 }}>
+          <div style={{ maxWidth: "1280px", margin: "0 auto", display: "flex", alignItems: "center", height: "70px", gap: "24px" }}>
+            <a href="/" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: "10px" }}>
+              <div style={{ width: "36px", height: "36px", borderRadius: "10px", background: "linear-gradient(135deg,#2d5a27,#6aa86e)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "18px" }}>🍃</div>
+              <span style={{ fontFamily: "Georgia, serif", fontWeight: "900", fontSize: "22px", color: "#1e1609" }}>Culirated</span>
+            </a>
+            <a href="/" style={{ fontFamily: "monospace", fontSize: "12px", color: "#8a7355", textDecoration: "none" }}>← All recipes</a>
+            <div style={{ flex: 1 }} />
+            <NavShareButton title={recipe?.title || ""} />
+            <a href="/submit" style={{ textDecoration: "none" }}>
+              <button style={{ background: "#3a7a32", color: "#e8f5e4", border: "none", borderRadius: "24px", padding: "10px 18px", cursor: "pointer", fontFamily: "monospace", fontSize: "12px", fontWeight: "500" }}>+ Submit Recipe</button>
+            </a>
+          </div>
+        </nav>
+
+        {/* Hero image */}
+        {recipe.image_url && (
+          <div style={{ position: "relative" }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={recipe.image_url} alt={recipe.title} className="hero-img" />
+            <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(30,22,9,0.7) 0%, transparent 50%)" }} />
+            <div style={{ position: "absolute", bottom: "40px", left: "0", right: "0", maxWidth: "1280px", margin: "0 auto", padding: "0 clamp(16px, 4vw, 48px)" }}>
+              <h1 style={{ fontFamily: "Georgia, serif", fontSize: "52px", fontWeight: "700", color: "#fff", lineHeight: 1.1, letterSpacing: "-1px", textShadow: "0 2px 20px rgba(0,0,0,0.3)" }}>
+                {recipe.title}
+              </h1>
+              {recipe.description && (
+                <p style={{ fontFamily: "Georgia, serif", fontSize: "18px", color: "rgba(255,255,255,0.85)", marginTop: "12px", maxWidth: "640px", lineHeight: 1.5 }}>{recipe.description}</p>
+              )}
+              {/* Reaction totals on image */}
+              <div style={{ display: "flex", gap: "12px", marginTop: "16px" }}>
+                {[
+                  { icon: "😍", count: recipe.reactions_want || 0 },
+                  { icon: "✅", count: recipe.reactions_made || 0 },
+                  { icon: "❤️", count: recipe.reactions_favorite || 0 },
+                ].map(r => r.count > 0 && (
+                  <div key={r.icon} style={{ display: "flex", alignItems: "center", gap: "5px", background: "rgba(255,255,255,0.15)", backdropFilter: "blur(8px)", borderRadius: "20px", padding: "5px 12px" }}>
+                    <span style={{ fontSize: "16px" }}>{r.icon}</span>
+                    <span style={{ fontFamily: "monospace", fontSize: "12px", color: "#fff", fontWeight: "500" }}>{r.count}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            {score && (
+              <div style={{ position: "absolute", top: "24px", right: "48px", background: "rgba(255,255,255,0.95)", backdropFilter: "blur(12px)", borderRadius: "16px", padding: "14px 18px", textAlign: "center" }}>
+                <div style={{ fontFamily: "monospace", fontSize: "10px", color: "#8a7355", letterSpacing: "1px", marginBottom: "4px" }}>AI SCORE</div>
+                <div style={{ fontFamily: "Georgia, serif", fontSize: "28px", fontWeight: "700", color: "#2d5a27", lineHeight: 1 }}>{score}</div>
+                <div style={{ fontFamily: "monospace", fontSize: "10px", color: "#8a7355" }}>/100</div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Content */}
+        <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "clamp(24px, 4vw, 48px) clamp(16px, 4vw, 48px) 80px" }}>
+          {/* Meta strip */}
+          <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginBottom: "16px" }}>
+            {cuisine && <span style={{ fontFamily: "monospace", fontSize: "12px", color: "#8a7355", background: "rgba(140,115,80,0.12)", borderRadius: "20px", padding: "5px 14px" }}>{cuisine}</span>}
+            {course && <span style={{ fontFamily: "monospace", fontSize: "12px", color: "#4a7a3d", background: "rgba(74,122,61,0.1)", borderRadius: "20px", padding: "5px 14px" }}>{course}</span>}
+            {method && <span style={{ fontFamily: "monospace", fontSize: "12px", color: "#8a7355", background: "rgba(140,115,80,0.12)", borderRadius: "20px", padding: "5px 14px" }}>{method}</span>}
+            {diet.map((d: string) => <span key={d} style={{ fontFamily: "monospace", fontSize: "12px", color: "#2d5a27", background: "rgba(45,90,39,0.1)", borderRadius: "20px", padding: "5px 14px" }}>{d}</span>)}
+          </div>
+
+          {/* Author */}
+          {recipe.author_name && (
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "40px" }}>
+              <div style={{ width: "28px", height: "28px", borderRadius: "50%", background: "linear-gradient(135deg,#2d5a27,#6aa86e)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "13px" }}>👨‍🍳</div>
+              <span style={{ fontFamily: "monospace", fontSize: "12px", color: "#8a7355" }}>Recipe by <strong style={{ color: "#1e1609" }}>{recipe.author_name}</strong></span>
+            </div>
+          )}
+
+          {/* Reaction totals if no hero image */}
+          {!recipe.image_url && (recipe.reactions_want > 0 || recipe.reactions_made > 0 || recipe.reactions_favorite > 0) && (
+            <div style={{ display: "flex", gap: "10px", marginBottom: "32px" }}>
+              {[
+                { icon: "😍", count: recipe.reactions_want || 0 },
+                { icon: "✅", count: recipe.reactions_made || 0 },
+                { icon: "❤️", count: recipe.reactions_favorite || 0 },
+              ].map(r => r.count > 0 && (
+                <div key={r.icon} style={{ display: "flex", alignItems: "center", gap: "5px", background: "#faf8f3", border: "1px solid rgba(180,160,120,0.2)", borderRadius: "20px", padding: "5px 12px" }}>
+                  <span style={{ fontSize: "16px" }}>{r.icon}</span>
+                  <span style={{ fontFamily: "monospace", fontSize: "12px", color: "#4a3820", fontWeight: "500" }}>{r.count}</span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Stats */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "16px", marginBottom: "48px" }}>
+            {[
+              { label: "Prep time", value: recipe.prep_time ? `${recipe.prep_time} min` : "—", icon: "⏱️" },
+              { label: "Servings", value: recipe.servings ? `${recipe.servings} people` : "—", icon: "👥" },
+              { label: "Calories", value: recipe.calories ? `${recipe.calories} kcal` : "—", icon: "🔥" },
+              { label: "Difficulty", value: recipe.difficulty || "—", icon: "📊" },
+            ].map(s => (
+              <div key={s.label} style={{ background: "#faf8f3", borderRadius: "14px", padding: "20px", border: "1px solid rgba(180,160,120,0.2)", textAlign: "center" }}>
+                <div style={{ fontSize: "24px", marginBottom: "8px" }}>{s.icon}</div>
+                <div style={{ fontFamily: "Georgia, serif", fontSize: "18px", fontWeight: "700", color: "#1e1609", marginBottom: "4px" }}>{s.value}</div>
+                <div style={{ fontFamily: "monospace", fontSize: "11px", color: "#8a7355", textTransform: "uppercase", letterSpacing: "0.5px" }}>{s.label}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* 2-col layout */}
+          <div className="content-grid" style={{ display: "grid", gridTemplateColumns: "1fr 2fr", gap: "48px", alignItems: "start" }}>
+            {/* Ingredients */}
+            <div style={{ background: "#faf8f3", borderRadius: "20px", padding: "32px", border: "1px solid rgba(180,160,120,0.2)", position: "sticky", top: "90px" }}>
+              <h2 style={{ fontFamily: "Georgia, serif", fontSize: "24px", fontWeight: "700", color: "#1e1609", marginBottom: "24px" }}>Ingredients</h2>
+              {ingredients.length > 0 ? (
+                <ul style={{ listStyle: "none" }}>
+                  {ingredients.map((ing: string, i: number) => (
+                    <li key={i} style={{ display: "flex", alignItems: "flex-start", gap: "12px", paddingBottom: "12px", borderBottom: i < ingredients.length - 1 ? "1px solid rgba(180,160,120,0.12)" : "none", marginBottom: "12px" }}>
+                      <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#3a7a32", marginTop: "7px", flexShrink: 0 }} />
+                      <span style={{ fontFamily: "Georgia, serif", fontSize: "15px", color: "#1e1609", lineHeight: 1.5 }}>{ing}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p style={{ fontFamily: "monospace", fontSize: "13px", color: "#8a7355" }}>No ingredients listed.</p>
+              )}
+            </div>
+
+            {/* Steps */}
+            <div>
+              <h2 style={{ fontFamily: "Georgia, serif", fontSize: "24px", fontWeight: "700", color: "#1e1609", marginBottom: "32px" }}>Instructions</h2>
+              {steps.length > 0 ? (
+                <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+                  {steps.map((step: string, i: number) => (
+                    <div key={i} style={{ display: "flex", gap: "20px", alignItems: "flex-start" }}>
+                      <div style={{ width: "36px", height: "36px", borderRadius: "50%", background: "#1e1609", color: "#e8dfc8", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "Georgia, serif", fontSize: "15px", fontWeight: "700", flexShrink: 0, marginTop: "2px" }}>
+                        {i + 1}
+                      </div>
+                      <div style={{ background: "#faf8f3", borderRadius: "14px", padding: "20px 24px", border: "1px solid rgba(180,160,120,0.15)", flex: 1 }}>
+                        <p style={{ fontFamily: "Georgia, serif", fontSize: "16px", color: "#1e1609", lineHeight: 1.75 }}>{step}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p style={{ fontFamily: "monospace", fontSize: "13px", color: "#8a7355" }}>No instructions listed.</p>
+              )}
+
+              {/* AI check badge */}
+              <div style={{ marginTop: "48px", background: "rgba(74,122,61,0.06)", borderRadius: "16px", padding: "24px", border: "1px solid rgba(74,122,61,0.15)", display: "flex", alignItems: "center", gap: "16px" }}>
+                <div style={{ fontSize: "28px" }}>✦</div>
+                <div>
+                  <div style={{ fontFamily: "monospace", fontSize: "12px", color: "#2d5a27", fontWeight: "500", marginBottom: "4px" }}>AI QUALITY CHECKED</div>
+                  <div style={{ fontFamily: "Georgia, serif", fontSize: "14px", color: "#4a3820", lineHeight: 1.5 }}>
+                    This recipe was submitted by a real cook and verified by AI — completeness, ratios, logic and prep time all checked before going live.
+                  </div>
+                </div>
+              </div>
+
+              {/* Reactions */}
+              <Reactions recipeId={id} initial={{ want: recipe.reactions_want || 0, made: recipe.reactions_made || 0, favorite: recipe.reactions_favorite || 0 }} />
+
+              {/* Share */}
+              <ShareButtons title={recipe.title} />
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
+function NavShareButton({ title }: { title?: string }) {
+  const [show, setShow] = useState(false);
+  const ref = React.useRef<HTMLDivElement>(null);
+  const url = typeof window !== "undefined" ? window.location.href : "";
+  const lang = typeof navigator !== "undefined" ? navigator.language : "en";
+  const isNL = lang.startsWith("nl"); const isDE = lang.startsWith("de"); const isFR = lang.startsWith("fr");
+  const label = isNL ? "Delen" : isDE ? "Teilen" : isFR ? "Partager" : "Share";
+  const text = encodeURIComponent(`${title || "Recipe"} on Culirated`);
+  const encodedUrl = encodeURIComponent(url);
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setShow(false);
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
+
+  const socials = [
+    { label: "WhatsApp", href: `https://wa.me/?text=${text}%20${encodedUrl}`, icon: "💬" },
+    { label: "Facebook", href: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`, icon: "📘" },
+    { label: "X / Twitter", href: `https://x.com/intent/tweet?text=${text}&url=${encodedUrl}`, icon: "𝕏" },
+    { label: "Pinterest", href: `https://pinterest.com/pin/create/button/?url=${encodedUrl}&description=${text}`, icon: "📌" },
+    { label: "Instagram", href: `https://www.instagram.com/`, icon: "📸", note: "Copy link below" },
+    { label: "TikTok", href: `https://www.tiktok.com/`, icon: "🎵", note: "Copy link below" },
+    { label: "LinkedIn", href: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`, icon: "💼" },
+    { label: "Reddit", href: `https://reddit.com/submit?url=${encodedUrl}&title=${text}`, icon: "🤖" },
+    { label: "Email", href: `mailto:?subject=${text}&body=${encodedUrl}`, icon: "✉️" },
+  ];
+
+  function copyLink() {
+    navigator.clipboard.writeText(url);
+    setShow(false);
+  }
+
+  return (
+    <div ref={ref} style={{ position: "relative" }}>
+      <button onClick={() => setShow(!show)} style={{ background: "#e8581a", border: "none", borderRadius: "20px", padding: "10px 16px", cursor: "pointer", fontFamily: "monospace", fontSize: "12px", color: "#fff", fontWeight: "500" }}>
+        ↗ {label}
+      </button>
+      {show && (
+        <div style={{ position: "absolute", top: "calc(100% + 8px)", right: 0, background: "#fff", borderRadius: "16px", padding: "8px", border: "1px solid rgba(180,160,120,0.2)", boxShadow: "0 12px 40px rgba(30,22,9,0.12)", zIndex: 200, minWidth: "200px" }}>
+          {socials.map(b => (
+            <a key={b.label} href={b.href} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "10px", padding: "9px 14px", borderRadius: "10px", fontFamily: "monospace", fontSize: "12px", color: "#1e1609" }}
+                onMouseEnter={e => (e.currentTarget.style.background = "#f5f0e8")}
+                onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
+                <span style={{ fontSize: "15px" }}>{b.icon}</span>
+                <span>{b.label}{b.note ? <span style={{ color: "#b8a882", fontSize: "10px" }}> — {b.note}</span> : ""}</span>
+              </div>
+            </a>
+          ))}
+          <div onClick={copyLink} style={{ display: "flex", alignItems: "center", gap: "10px", padding: "9px 14px", borderRadius: "10px", fontFamily: "monospace", fontSize: "12px", color: "#1e1609", cursor: "pointer", borderTop: "1px solid rgba(180,160,120,0.15)", marginTop: "4px" }}
+            onMouseEnter={e => (e.currentTarget.style.background = "#f5f0e8")}
+            onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
+            <span style={{ fontSize: "15px" }}>🔗</span> Copy link
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Reactions({ recipeId, initial }: { recipeId: string, initial: { want: number, made: number, favorite: number } }) {
+  const [counts, setCounts] = useState(initial);
+  const [active, setActive] = useState<string[]>([]);
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
+
+  const lang = typeof navigator !== "undefined" ? navigator.language : "en";
+  const isNL = lang.startsWith("nl");
+
+  const reactions = [
+    { key: "want", icon: "😍", col: "reactions_want" },
+    { key: "made", icon: "✅", col: "reactions_made" },
+    { key: "favorite", icon: "❤️", col: "reactions_favorite" },
+  ];
+
+  async function toggle(key: string, col: string) {
+    const isActive = active.includes(key);
+    const delta = isActive ? -1 : 1;
+    const newCount = Math.max(0, (counts as any)[key] + delta);
+    setCounts(prev => ({ ...prev, [key]: newCount }));
+    setActive(prev => isActive ? prev.filter(k => k !== key) : [...prev, key]);
+    await supabase.from("recipes").update({ [col]: newCount }).eq("id", recipeId);
+  }
+
+  return (
+    <div style={{ marginTop: "40px", marginBottom: "8px" }}>
+      <div style={{ fontFamily: "monospace", fontSize: "11px", color: "#8a7355", letterSpacing: "1px", marginBottom: "16px", textTransform: "uppercase" }}>
+        {isNL ? "Wat vind je?" : "What do you think?"}
+      </div>
+      <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
+        {reactions.map(r => {
+          const isActive = active.includes(r.key);
+          return (
+            <button key={r.key} onClick={() => toggle(r.key, r.col)}
+              style={{
+                display: "flex", alignItems: "center", gap: "8px",
+                background: isActive ? "#1e1609" : "#faf8f3",
+                color: isActive ? "#e8dfc8" : "#4a3820",
+                border: `1.5px solid ${isActive ? "#1e1609" : "rgba(180,160,120,0.3)"}`,
+                borderRadius: "24px", padding: "11px 20px",
+                fontFamily: "monospace", fontSize: "13px", cursor: "pointer",
+                transition: "all 0.15s",
+              }}>
+              <span style={{ fontSize: "20px" }}>{r.icon}</span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function ShareButtons({ title }: { title: string }) {
+  const [show, setShow] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const ref = React.useRef<HTMLDivElement>(null);
+  const url = typeof window !== "undefined" ? window.location.href : "";
+  const lang = typeof navigator !== "undefined" ? navigator.language : "en";
+  const isNL = lang.startsWith("nl"); const isDE = lang.startsWith("de"); const isFR = lang.startsWith("fr");
+  const shareLabel = isNL ? "Deel dit recept" : isDE ? "Rezept teilen" : isFR ? "Partager la recette" : "Share this recipe";
+  const copyLabel = isNL ? "Link kopiëren" : isDE ? "Link kopieren" : isFR ? "Copier le lien" : "Copy link";
+  const copiedLabel = isNL ? "Gekopieerd!" : "Copied!";
+  const text = encodeURIComponent(`${title} on Culirated`);
+  const encodedUrl = encodeURIComponent(url);
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setShow(false);
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
+
+  const socials = [
+    { label: "WhatsApp", href: `https://wa.me/?text=${text}%20${encodedUrl}`, icon: "💬" },
+    { label: "Facebook", href: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`, icon: "📘" },
+    { label: "X / Twitter", href: `https://x.com/intent/tweet?text=${text}&url=${encodedUrl}`, icon: "𝕏" },
+    { label: "Pinterest", href: `https://pinterest.com/pin/create/button/?url=${encodedUrl}&description=${text}`, icon: "📌" },
+    { label: "Instagram", href: `https://www.instagram.com/`, icon: "📸" },
+    { label: "TikTok", href: `https://www.tiktok.com/`, icon: "🎵" },
+    { label: "LinkedIn", href: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`, icon: "💼" },
+    { label: "Reddit", href: `https://reddit.com/submit?url=${encodedUrl}&title=${text}`, icon: "🤖" },
+    { label: "Email", href: `mailto:?subject=${text}&body=${encodedUrl}`, icon: "✉️" },
+  ];
+
+  return (
+    <div ref={ref} style={{ marginTop: "32px", position: "relative", display: "inline-block" }}>
+      <div style={{ fontFamily: "monospace", fontSize: "11px", color: "#8a7355", letterSpacing: "1px", marginBottom: "14px", textTransform: "uppercase" }}>{shareLabel}</div>
+      <button onClick={() => setShow(!show)} style={{ background: "#e8581a", border: "none", borderRadius: "20px", padding: "12px 24px", cursor: "pointer", fontFamily: "monospace", fontSize: "13px", color: "#fff", fontWeight: "500" }}>
+        ↗ {shareLabel}
+      </button>
+      {show && (
+        <div style={{ position: "absolute", bottom: "calc(100% + 8px)", left: 0, background: "#fff", borderRadius: "16px", padding: "8px", border: "1px solid rgba(180,160,120,0.2)", boxShadow: "0 12px 40px rgba(30,22,9,0.12)", zIndex: 200, minWidth: "200px" }}>
+          {socials.map(b => (
+            <a key={b.label} href={b.href} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "10px", padding: "9px 14px", borderRadius: "10px", fontFamily: "monospace", fontSize: "12px", color: "#1e1609" }}
+                onMouseEnter={e => (e.currentTarget.style.background = "#f5f0e8")}
+                onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
+                <span style={{ fontSize: "15px" }}>{b.icon}</span> {b.label}
+              </div>
+            </a>
+          ))}
+          <div onClick={() => { navigator.clipboard.writeText(url); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
+            style={{ display: "flex", alignItems: "center", gap: "10px", padding: "9px 14px", borderRadius: "10px", fontFamily: "monospace", fontSize: "12px", color: copied ? "#2d5a27" : "#1e1609", cursor: "pointer", borderTop: "1px solid rgba(180,160,120,0.15)", marginTop: "4px" }}
+            onMouseEnter={e => (e.currentTarget.style.background = "#f5f0e8")}
+            onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
+            <span style={{ fontSize: "15px" }}>{copied ? "✅" : "🔗"}</span> {copied ? copiedLabel : copyLabel}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// === recipes\page.tsx ===
+"use client";
+
+import { useState, useEffect, Suspense } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
+import { createClient } from "@supabase/supabase-js";
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
+
+const FILTERS = [
+  { key: "cuisine", label: "Cuisine", items: ["Italian","Mexican","Asian","Indian","Thai","Chinese","Japanese","Greek","Middle Eastern","French","American","Mediterranean"] },
+  { key: "course", label: "Course", items: ["Breakfast","Lunch","Dinner","Appetizer","Side dish","Dessert","Snack"] },
+  { key: "diet", label: "Diet", items: ["Vegetarian","Vegan","Gluten-free","Dairy-free","Low-carb","High-protein"] },
+  { key: "method", label: "Method", items: ["Air fryer","Slow cooker","Sheet pan","BBQ & Grill","One pot","No-cook"] },
+  { key: "time", label: "Time", items: ["Under 20 min","Under 30 min","Under 1 hour","Weekend project"] },
+  { key: "occasion", label: "Occasion", items: ["Weeknight","Meal prep","Holidays","Kids","Date night","Batch cooking"] },
+  { key: "ingredient", label: "Ingredient", items: ["Chicken","Beef","Fish & seafood","Pasta","Rice","Eggs","Vegetables","Legumes","Pork"] },
+];
+
+// Flat list of all chips with category color
+const CHIP_COLORS: Record<string, { bg: string; activeBg: string; icon: string }> = {
+  cuisine:    { bg: "rgba(139,90,43,0.08)",   activeBg: "#8b5a2b", icon: "🌍" },
+  course:     { bg: "rgba(45,90,39,0.08)",    activeBg: "#2d5a27", icon: "🍽️" },
+  diet:       { bg: "rgba(74,122,61,0.08)",   activeBg: "#4a7a3d", icon: "🌿" },
+  method:     { bg: "rgba(180,80,20,0.08)",   activeBg: "#b45014", icon: "🔥" },
+  time:       { bg: "rgba(30,22,9,0.06)",     activeBg: "#1e1609", icon: "⏱️" },
+  occasion:   { bg: "rgba(100,60,140,0.08)",  activeBg: "#643c8c", icon: "🎉" },
+  ingredient: { bg: "rgba(160,40,40,0.08)",   activeBg: "#a02828", icon: "🥩" },
+};
+
+const ALL_CHIPS = FILTERS.flatMap(f =>
+  f.items.map(item => ({ key: f.key, label: item, ...CHIP_COLORS[f.key] }))
+);
+
+const PAGE_SIZE = 12;
+
+export default function RecipesPage() {
+  return (
+    <Suspense fallback={<div style={{ padding: "80px", textAlign: "center", fontFamily: "monospace", color: "#8a7355" }}>Loading…</div>}>
+      <RecipesContent />
+    </Suspense>
+  );
+}
+
+function RecipesContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [active, setActive] = useState<Record<string, string[]>>({});
+  const [recipes, setRecipes] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
+  const [total, setTotal] = useState(0);
+
+  useEffect(() => {
+    const init: Record<string, string[]> = {};
+    FILTERS.forEach(f => {
+      const v = searchParams.get(f.key);
+      if (v) init[f.key] = v.split(",");
+    });
+    setActive(init);
+  }, []);
+
+  useEffect(() => { fetchRecipes(0, true); }, [active]);
+
+  function toggleFilter(key: string, value: string) {
+    setActive(prev => {
+      const current = prev[key] || [];
+      const next = current.includes(value) ? current.filter(v => v !== value) : [...current, value];
+      const updated = { ...prev, [key]: next };
+      if (next.length === 0) delete updated[key];
+      const params = new URLSearchParams();
+      Object.entries(updated).forEach(([k, vals]) => { if (vals.length > 0) params.set(k, vals.join(",")); });
+      router.replace(`/recipes?${params.toString()}`, { scroll: false });
+      return updated;
+    });
+  }
+
+  function clearAll() { setActive({}); router.replace("/recipes", { scroll: false }); }
+  const activeCount = Object.values(active).flat().length;
+
+  async function fetchRecipes(pageNum: number, reset: boolean) {
+    setLoading(true);
+    const from = pageNum * PAGE_SIZE;
+    const to = from + PAGE_SIZE - 1;
+    const arrayKeys = ["diet", "occasion"];
+
+    let query = supabase
+      .from("recipes")
+      .select("id, title, description, prep_time, calories, ai_score, image_url", { count: "exact" })
+      .eq("status", "approved")
+      .order("created_at", { ascending: false })
+      .range(from, to);
+
+    Object.entries(active).forEach(([key, values]) => {
+      if (values.length === 0) return;
+      const fieldName = key === "ingredient" ? "main_ingredient" : key;
+      if (arrayKeys.includes(key)) {
+        values.forEach(v => { query = query.contains(`ai_score->${fieldName}`, JSON.stringify([v])); });
+      } else if (values.length === 1) {
+        query = query.ilike(`ai_score->>${fieldName}`, values[0]);
+      } else {
+        query = query.or(values.map(v => `ai_score->>${fieldName}.ilike.${v}`).join(","));
+      }
+    });
+
+    const { data, count } = await query;
+    if (data) { setRecipes(reset ? data : prev => [...prev, ...data]); setHasMore(data.length === PAGE_SIZE); if (count !== null) setTotal(count); }
+    setPage(pageNum);
+    setLoading(false);
+  }
+
+  return (
+    <>
+      <style>{`
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background: #f5f0e8; overflow-x: hidden; }
+        .recipe-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+        .recipe-card { border-radius: 16px; overflow: hidden; background: #faf8f3; border: 1px solid rgba(180,160,120,0.2); cursor: pointer; display: flex; flex-direction: column; transition: transform 0.2s, box-shadow 0.2s; }
+        .recipe-card:hover { transform: translateY(-4px); box-shadow: 0 16px 40px rgba(30,22,9,0.12); }
+        .recipe-img { aspect-ratio: 4/3; overflow: hidden; flex-shrink: 0; position: relative; }
+        .recipe-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .chip { display: inline-flex; align-items: center; padding: 6px 14px; border-radius: 20px; font-family: monospace; font-size: 12px; cursor: pointer; border: 1px solid rgba(180,160,120,0.3); background: transparent; color: #6b5840; transition: all 0.15s; white-space: nowrap; }
+        .chip:hover { border-color: #4a7a3d; color: #2d5a27; background: rgba(74,122,61,0.06); }
+        .chip.active { background: #2d5a27; color: #e8f5e4; border-color: #2d5a27; }
+        @media (max-width: 768px) { .recipe-grid { grid-template-columns: 1fr 1fr; } }
+        @media (max-width: 480px) { .recipe-grid { grid-template-columns: 1fr; } }
+      `}</style>
+
+      <div style={{ minHeight: "100vh", background: "#f5f0e8" }}>
+        <div style={{ background: "#1e1609", padding: "8px 0", textAlign: "center" }}>
+          <span style={{ color: "#c8b080", fontFamily: "monospace", fontSize: "11px", letterSpacing: "1px" }}>👨‍🍳 RECIPES BY PEOPLE · ✦ CURATED BY AI · ONLY THE BEST GOES LIVE</span>
+        </div>
+
+        <nav style={{ background: "rgba(245,240,232,0.97)", backdropFilter: "blur(20px)", borderBottom: "1px solid rgba(180,160,120,0.25)", padding: "0 clamp(16px, 4vw, 48px)" }}>
+          <div style={{ maxWidth: "1280px", margin: "0 auto", display: "flex", alignItems: "center", height: "70px", gap: "24px" }}>
+            <a href="/" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: "10px" }}>
+              <div style={{ width: "36px", height: "36px", borderRadius: "10px", background: "linear-gradient(135deg,#2d5a27,#6aa86e)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "18px" }}>🍃</div>
+              <span style={{ fontFamily: "Georgia, serif", fontWeight: "900", fontSize: "22px", color: "#1e1609" }}>Culirated</span>
+            </a>
+            <div style={{ flex: 1 }} />
+            <a href="/submit" style={{ textDecoration: "none" }}>
+              <button style={{ background: "#3a7a32", color: "#e8f5e4", border: "none", borderRadius: "24px", padding: "10px 18px", cursor: "pointer", fontFamily: "monospace", fontSize: "12px", fontWeight: "500" }}>+ Submit Recipe</button>
+            </a>
+          </div>
+        </nav>
+
+        <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "clamp(24px, 4vw, 48px) clamp(16px, 4vw, 48px) 0" }}>
+          <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: "32px" }}>
+            <div>
+              <h1 style={{ fontFamily: "Georgia, serif", fontSize: "42px", fontWeight: "700", color: "#1e1609", letterSpacing: "-1px", marginBottom: "6px" }}>All Recipes</h1>
+              <p style={{ fontFamily: "monospace", fontSize: "13px", color: "#8a7355" }}>{loading ? "Loading..." : `${total} recipes · AI quality checked`}</p>
+            </div>
+            {activeCount > 0 && (
+              <button onClick={clearAll} style={{ fontFamily: "monospace", fontSize: "12px", color: "#8b3020", background: "none", border: "none", cursor: "pointer", textDecoration: "underline" }}>Clear all ({activeCount})</button>
+            )}
+          </div>
+
+          {/* Active filter summary */}
+          {activeCount > 0 && (
+            <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginBottom: "16px", alignItems: "center" }}>
+              <span style={{ fontFamily: "monospace", fontSize: "11px", color: "#8a7355" }}>Active:</span>
+              {Object.entries(active).flatMap(([key, vals]) =>
+                vals.map(v => (
+                  <button key={`${key}-${v}`} onClick={() => toggleFilter(key, v)}
+                    style={{ display: "inline-flex", alignItems: "center", gap: "5px", padding: "4px 12px", borderRadius: "20px", fontFamily: "monospace", fontSize: "12px", cursor: "pointer", background: CHIP_COLORS[key]?.activeBg || "#1e1609", color: "#fff", border: "none" }}>
+                    {v} ✕
+                  </button>
+                ))
+              )}
+              <button onClick={clearAll} style={{ fontFamily: "monospace", fontSize: "11px", color: "#8b3020", background: "none", border: "none", cursor: "pointer", textDecoration: "underline" }}>Clear all</button>
+            </div>
+          )}
+
+          {/* Flat chip cloud */}
+          <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginBottom: "32px" }}>
+            {ALL_CHIPS.map(chip => {
+              const isActive = (active[chip.key] || []).includes(chip.label);
+              return (
+                <button key={`${chip.key}-${chip.label}`}
+                  onClick={() => toggleFilter(chip.key, chip.label)}
+                  style={{
+                    display: "inline-flex", alignItems: "center", gap: "5px",
+                    padding: "7px 14px", borderRadius: "20px", cursor: "pointer",
+                    fontFamily: "monospace", fontSize: "12px", whiteSpace: "nowrap",
+                    border: "none", transition: "all 0.15s",
+                    background: isActive ? chip.activeBg : chip.bg,
+                    color: isActive ? "#fff" : "#4a3820",
+                    fontWeight: isActive ? "500" : "400",
+                    transform: isActive ? "scale(1.03)" : "scale(1)",
+                  }}>
+                  <span style={{ fontSize: "11px" }}>{chip.icon}</span>
+                  {chip.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "0 clamp(16px, 4vw, 48px) 80px" }}>
+          {loading && recipes.length === 0 ? (
+            <div style={{ textAlign: "center", padding: "80px", fontFamily: "monospace", color: "#8a7355" }}>Loading recipes…</div>
+          ) : recipes.length === 0 ? (
+            <div style={{ textAlign: "center", padding: "80px" }}>
+              <div style={{ fontSize: "48px", marginBottom: "16px" }}>🔍</div>
+              <p style={{ fontFamily: "Georgia, serif", fontSize: "24px", color: "#1e1609", marginBottom: "8px" }}>No recipes found</p>
+              <p style={{ fontFamily: "monospace", fontSize: "13px", color: "#8a7355", marginBottom: "24px" }}>Try removing some filters</p>
+              <button onClick={clearAll} style={{ background: "#3a7a32", color: "#e8f5e4", border: "none", borderRadius: "24px", padding: "12px 28px", fontFamily: "monospace", fontSize: "13px", cursor: "pointer" }}>Clear filters</button>
+            </div>
+          ) : (
+            <>
+              <div className="recipe-grid">
+                {recipes.map(r => (
+                  <a key={r.id} href={`/recipe/${r.id}`} style={{ textDecoration: "none" }}>
+                  <div className="recipe-card">
+                    <div className="recipe-img">
+                      {r.image_url
+                        // eslint-disable-next-line @next/next/no-img-element
+                        ? <img src={r.image_url} alt={r.title} />
+                        : <div style={{ width: "100%", height: "100%", background: "linear-gradient(135deg,#2d5a27,#4a8c41)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "48px" }}>🍽️</div>
+                      }
+                      <div style={{ position: "absolute", top: "12px", right: "12px", background: "linear-gradient(135deg,#2d5a27,#4a8c41)", borderRadius: "20px", padding: "4px 10px", fontSize: "11px", fontFamily: "monospace", color: "#e8f5e6" }}>
+                        ✦ AI {r.ai_score?.score || 90}/100
+                      </div>
+                    </div>
+                    <div style={{ padding: "16px 20px 20px", flex: 1, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+                      <div>
+                        <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginBottom: "8px" }}>
+                          {r.ai_score?.cuisine && <span style={{ fontSize: "11px", fontFamily: "monospace", color: "#8a7355", background: "rgba(140,115,80,0.12)", borderRadius: "20px", padding: "3px 10px" }}>{r.ai_score.cuisine}</span>}
+                          {r.ai_score?.diet?.[0] && <span style={{ fontSize: "11px", fontFamily: "monospace", color: "#4a7a3d", background: "rgba(74,122,61,0.1)", borderRadius: "20px", padding: "3px 10px" }}>{r.ai_score.diet[0]}</span>}
+                        </div>
+                        <h3 style={{ fontFamily: "Georgia, serif", fontSize: "18px", fontWeight: "700", color: "#1e1609", lineHeight: 1.25, marginBottom: "8px" }}>{r.title}</h3>
+                        {r.description && <p style={{ fontFamily: "Georgia, serif", fontSize: "13px", color: "#8a7355", lineHeight: 1.5, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{r.description}</p>}
+                      </div>
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: "12px", borderTop: "1px solid rgba(180,160,120,0.15)", marginTop: "12px" }}>
+                        <div style={{ display: "flex", gap: "12px" }}>
+                          {r.prep_time && <span style={{ fontSize: "12px", color: "#8a7355", fontFamily: "monospace" }}>⏱ {r.prep_time} min</span>}
+                          {r.calories && <span style={{ fontSize: "12px", color: "#8a7355", fontFamily: "monospace" }}>🔥 {r.calories} kcal</span>}
+                        </div>
+                        <span style={{ fontSize: "10px", fontFamily: "monospace", color: "#4a7a3d", background: "rgba(74,122,61,0.1)", borderRadius: "10px", padding: "2px 8px" }}>✦ AI approved</span>
+                      </div>
+                    </div>
+                  </div>
+                  </a>
+                ))}
+              </div>
+              {hasMore && (
+                <div style={{ textAlign: "center", marginTop: "48px" }}>
+                  <button onClick={() => fetchRecipes(page + 1, false)} disabled={loading}
+                    style={{ background: "transparent", color: "#1e1609", border: "1.5px solid rgba(30,22,9,0.25)", borderRadius: "28px", padding: "14px 40px", fontFamily: "monospace", fontSize: "13px", cursor: "pointer" }}>
+                    {loading ? "Loading…" : "Load more recipes"}
+                  </button>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+    </>
+  );
+}
+
+// === recipes\[type]\[value]\page.tsx ===
+"use client";
+
+import { useState, useEffect, use } from "react";
+import { createClient } from "@supabase/supabase-js";
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
+
+const CATEGORY_LABELS: Record<string, string> = {
+  cuisine: "Cuisine", course: "Course", diet: "Diet",
+  method: "Method", time: "Time", occasion: "Occasion", ingredient: "Ingredient",
+};
+
+export default function CategoryPage({ params }: { params: Promise<{ type: string; value: string }> }) {
+  const { type, value } = use(params);
+  const [recipes, setRecipes] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
+
+  const valueFormatted = decodeURIComponent(value).replace(/-/g, " ").replace(/\b\w/g, l => l.toUpperCase());
+  const PAGE_SIZE = 12;
+
+  useEffect(() => { loadRecipes(0, true); }, [type, value]);
+
+  async function loadRecipes(pageNum: number, reset: boolean) {
+    setLoading(true);
+    const from = pageNum * PAGE_SIZE;
+    const to = from + PAGE_SIZE - 1;
+    const isArray = type === "diet" || type === "occasion";
+    const fieldName = type === "ingredient" ? "main_ingredient" : type;
+
+    let query = supabase
+      .from("recipes")
+      .select("id, title, description, prep_time, calories, ai_score, image_url")
+      .eq("status", "approved")
+      .range(from, to)
+      .order("created_at", { ascending: false });
+
+    if (isArray) {
+      query = query.contains(`ai_score->${fieldName}`, JSON.stringify([valueFormatted]));
+    } else {
+      query = query.ilike(`ai_score->>${fieldName}`, valueFormatted);
+    }
+
+    const { data } = await query;
+    if (data) {
+      setRecipes(reset ? data : prev => [...prev, ...data]);
+      setHasMore(data.length === PAGE_SIZE);
+    }
+    setPage(pageNum);
+    setLoading(false);
+  }
+
+  return (
+    <>
+      <style>{`
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background: #f5f0e8; overflow-x: hidden; }
+        .recipe-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+        .recipe-card { border-radius: 16px; overflow: hidden; background: #faf8f3; border: 1px solid rgba(180,160,120,0.2); cursor: pointer; display: flex; flex-direction: column; transition: transform 0.2s, box-shadow 0.2s; }
+        .recipe-card:hover { transform: translateY(-4px); box-shadow: 0 16px 40px rgba(30,22,9,0.12); }
+        .recipe-img { aspect-ratio: 4/3; overflow: hidden; flex-shrink: 0; position: relative; }
+        .recipe-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        @media (max-width: 768px) { .recipe-grid { grid-template-columns: 1fr 1fr; } }
+        @media (max-width: 480px) { .recipe-grid { grid-template-columns: 1fr; } }
+      `}</style>
+
+      <div style={{ minHeight: "100vh", background: "#f5f0e8" }}>
+        <div style={{ background: "#1e1609", padding: "8px 0", textAlign: "center" }}>
+          <span style={{ color: "#c8b080", fontFamily: "monospace", fontSize: "11px", letterSpacing: "1px" }}>
+            👨‍🍳 RECIPES BY PEOPLE · ✦ CURATED BY AI · ONLY THE BEST GOES LIVE
+          </span>
+        </div>
+
+        <nav style={{ background: "rgba(245,240,232,0.97)", backdropFilter: "blur(20px)", borderBottom: "1px solid rgba(180,160,120,0.25)", padding: "0 clamp(16px, 4vw, 48px)" }}>
+          <div style={{ maxWidth: "1280px", margin: "0 auto", display: "flex", alignItems: "center", height: "70px", gap: "24px" }}>
+            <a href="/" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: "10px" }}>
+              <div style={{ width: "36px", height: "36px", borderRadius: "10px", background: "linear-gradient(135deg,#2d5a27,#6aa86e)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "18px" }}>🍃</div>
+              <span style={{ fontFamily: "Georgia, serif", fontWeight: "900", fontSize: "22px", color: "#1e1609" }}>Culirated</span>
+            </a>
+            <a href="/" style={{ fontFamily: "monospace", fontSize: "12px", color: "#8a7355", textDecoration: "none" }}>← Back</a>
+            <div style={{ flex: 1 }} />
+            <a href="/submit" style={{ textDecoration: "none" }}>
+              <button style={{ background: "#3a7a32", color: "#e8f5e4", border: "none", borderRadius: "24px", padding: "10px 18px", cursor: "pointer", fontFamily: "monospace", fontSize: "12px", fontWeight: "500" }}>+ Submit Recipe</button>
+            </a>
+          </div>
+        </nav>
+
+        <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "clamp(32px, 4vw, 56px) clamp(16px, 4vw, 48px) 40px" }}>
+          <div style={{ fontFamily: "monospace", fontSize: "12px", color: "#8a7355", letterSpacing: "1px", marginBottom: "12px", textTransform: "uppercase" }}>
+            {CATEGORY_LABELS[type] || type}
+          </div>
+          <h1 style={{ fontFamily: "Georgia, serif", fontSize: "52px", fontWeight: "700", color: "#1e1609", letterSpacing: "-1px", marginBottom: "8px" }}>
+            {valueFormatted}
+          </h1>
+          <p style={{ fontFamily: "monospace", fontSize: "13px", color: "#8a7355" }}>
+            {loading ? "Loading..." : `${recipes.length}${hasMore ? "+" : ""} recipes · AI quality checked`}
+          </p>
+        </div>
+
+        <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "0 clamp(16px, 4vw, 48px) 80px" }}>
+          {loading && recipes.length === 0 ? (
+            <div style={{ textAlign: "center", padding: "80px", fontFamily: "monospace", color: "#8a7355" }}>Loading recipes…</div>
+          ) : recipes.length === 0 ? (
+            <div style={{ textAlign: "center", padding: "80px" }}>
+              <div style={{ fontSize: "48px", marginBottom: "16px" }}>🍽️</div>
+              <p style={{ fontFamily: "Georgia, serif", fontSize: "24px", color: "#1e1609", marginBottom: "8px" }}>No recipes found</p>
+              <p style={{ fontFamily: "monospace", fontSize: "13px", color: "#8a7355" }}>Be the first to submit a {valueFormatted} recipe!</p>
+              <a href="/submit" style={{ display: "inline-block", marginTop: "24px", background: "#3a7a32", color: "#e8f5e4", textDecoration: "none", borderRadius: "24px", padding: "12px 28px", fontFamily: "monospace", fontSize: "13px" }}>Submit Recipe</a>
+            </div>
+          ) : (
+            <>
+              <div className="recipe-grid">
+                {recipes.map(r => (
+                  <a key={r.id} href={`/recipe/${r.id}`} style={{ textDecoration: "none" }}>
+                  <div className="recipe-card">
+                    <div className="recipe-img">
+                      {r.image_url
+                        // eslint-disable-next-line @next/next/no-img-element
+                        ? <img src={r.image_url} alt={r.title} />
+                        : <div style={{ width: "100%", height: "100%", background: "linear-gradient(135deg,#2d5a27,#4a8c41)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "48px" }}>🍽️</div>
+                      }
+                      <div style={{ position: "absolute", top: "12px", right: "12px", background: "linear-gradient(135deg,#2d5a27,#4a8c41)", borderRadius: "20px", padding: "4px 10px", fontSize: "11px", fontFamily: "monospace", color: "#e8f5e6" }}>
+                        ✦ AI {r.ai_score?.score || 90}/100
+                      </div>
+                    </div>
+                    <div style={{ padding: "16px 20px 20px", flex: 1, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+                      <div>
+                        <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginBottom: "8px" }}>
+                          {r.ai_score?.cuisine && <span style={{ fontSize: "11px", fontFamily: "monospace", color: "#8a7355", background: "rgba(140,115,80,0.12)", borderRadius: "20px", padding: "3px 10px" }}>{r.ai_score.cuisine}</span>}
+                          {r.ai_score?.diet?.[0] && <span style={{ fontSize: "11px", fontFamily: "monospace", color: "#4a7a3d", background: "rgba(74,122,61,0.1)", borderRadius: "20px", padding: "3px 10px" }}>{r.ai_score.diet[0]}</span>}
+                        </div>
+                        <h3 style={{ fontFamily: "Georgia, serif", fontSize: "18px", fontWeight: "700", color: "#1e1609", lineHeight: 1.25, marginBottom: "8px" }}>{r.title}</h3>
+                        {r.description && <p style={{ fontFamily: "Georgia, serif", fontSize: "13px", color: "#8a7355", lineHeight: 1.5, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{r.description}</p>}
+                      </div>
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: "12px", borderTop: "1px solid rgba(180,160,120,0.15)", marginTop: "12px" }}>
+                        <div style={{ display: "flex", gap: "12px" }}>
+                          {r.prep_time && <span style={{ fontSize: "12px", color: "#8a7355", fontFamily: "monospace" }}>⏱ {r.prep_time} min</span>}
+                          {r.calories && <span style={{ fontSize: "12px", color: "#8a7355", fontFamily: "monospace" }}>🔥 {r.calories} kcal</span>}
+                        </div>
+                        <span style={{ fontSize: "10px", fontFamily: "monospace", color: "#4a7a3d", background: "rgba(74,122,61,0.1)", borderRadius: "10px", padding: "2px 8px" }}>✦ AI approved</span>
+                      </div>
+                    </div>
+                  </div>
+                  </a>
+                ))}
+              </div>
+              {hasMore && (
+                <div style={{ textAlign: "center", marginTop: "48px" }}>
+                  <button onClick={() => loadRecipes(page + 1, false)} disabled={loading}
+                    style={{ background: "transparent", color: "#1e1609", border: "1.5px solid rgba(30,22,9,0.25)", borderRadius: "28px", padding: "14px 40px", fontFamily: "monospace", fontSize: "13px", cursor: "pointer" }}>
+                    {loading ? "Loading…" : "Load more recipes"}
+                  </button>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+    </>
+  );
+}
+
+// === api\submit\route.ts ===
+import { NextRequest, NextResponse } from "next/server";
+import Anthropic from "@anthropic-ai/sdk";
+import { createClient } from "@supabase/supabase-js";
+
+const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_KEY!
+);
+
+async function generateEmbedding(text: string): Promise<number[] | null> {
+  try {
+    const res = await fetch("https://api.openai.com/v1/embeddings", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${process.env.OPENAI_API_KEY}` },
+      body: JSON.stringify({ model: "text-embedding-3-small", input: text }),
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.data[0].embedding;
+  } catch { return null; }
+}
+
+async function checkDuplicate(embedding: number[]): Promise<{ isDuplicate: boolean; similarTitle?: string }> {
+  try {
+    const { data } = await supabase.rpc("match_recipes", {
+      query_embedding: embedding,
+      match_threshold: 0.85,
+      match_count: 1,
+    });
+    if (data && data.length > 0) {
+      return { isDuplicate: true, similarTitle: data[0].title };
+    }
+    return { isDuplicate: false };
+  } catch { return { isDuplicate: false }; }
+}
+
+async function generateImage(title: string, cuisine: string): Promise<string | null> {
+  try {
+    const res = await fetch("https://api.openai.com/v1/images/generations", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${process.env.OPENAI_API_KEY}` },
+      body: JSON.stringify({
+        model: "dall-e-3",
+        prompt: `Professional food photography of ${title}. ${cuisine ? cuisine + " cuisine." : ""} Shot on a clean white or natural wood surface, soft natural lighting, shallow depth of field, appetizing, magazine quality. No text, no watermarks.`,
+        n: 1, size: "1024x1024", quality: "standard",
+      }),
+    });
+    if (!res.ok) return null;
+    const tempUrl = (await res.json()).data[0].url;
+    const imgRes = await fetch(tempUrl);
+    if (!imgRes.ok) return null;
+    const buffer = await imgRes.arrayBuffer();
+    const filename = `${Date.now()}.jpg`;
+    const { error } = await supabase.storage.from("recipe-images").upload(filename, buffer, { contentType: "image/jpeg", upsert: true });
+    if (error) return null;
+    return supabase.storage.from("recipe-images").getPublicUrl(filename).data.publicUrl;
+  } catch { return null; }
+}
+
+export async function POST(req: NextRequest) {
+  const body = await req.json();
+  const { name, recipe, confirm, lang } = body;
+  const language = lang?.startsWith("nl") ? "Dutch" : lang?.startsWith("de") ? "German" : lang?.startsWith("fr") ? "French" : "English";
+  if (!name || !recipe) return NextResponse.json({ error: "Missing fields" }, { status: 400 });
+
+  // Step 2: confirmed — save + generate image
+  if (confirm) {
+    const imageUrl = await generateImage(body.confirmedTitle, body.cuisine || "");
+    const { data: inserted, error } = await supabase.from("recipes").insert({
+      title: body.confirmedTitle,
+      description: body.confirmedDescription || "",
+      ingredients: body.confirmedIngredients || [],
+      steps: body.confirmedSteps || [],
+      prep_time: body.prep_time,
+      servings: body.servings,
+      calories: body.calories,
+      difficulty: body.difficulty,
+      status: "approved",
+      image_url: imageUrl,
+      ai_score: body.ai_score,
+      author_name: name,
+    }).select("id").single();
+    if (error) return NextResponse.json({ error: "Failed to save" }, { status: 500 });
+
+    // Save embedding for future duplicate checks
+    const embeddingText = `${body.confirmedTitle} ${(body.confirmedIngredients || []).join(" ")}`;
+    const embedding = await generateEmbedding(embeddingText);
+    if (embedding) {
+      await supabase.from("recipes").update({ embedding }).eq("id", inserted.id);
+    }
+
+    return NextResponse.json({ saved: true, id: inserted.id, imageUrl });
+  }
+
+  // Step 1: get similar titles via embedding for Claude to evaluate
+  const embeddingText = recipe.slice(0, 500);
+  const embedding = await generateEmbedding(embeddingText);
+  let similarTitles: string[] = [];
+  if (embedding) {
+    const { data } = await supabase.rpc("match_recipes", {
+      query_embedding: embedding,
+      match_threshold: 0.75,
+      match_count: 5,
+    });
+    if (data) similarTitles = data.map((r: any) => r.title);
+  }
+
+  // Step 1: analyse (Claude also judges duplicates)
+  const similarContext = similarTitles.length > 0
+    ? `\n\nIMPORTANT: These similar recipes already exist in the database:\n${similarTitles.map(t => `- ${t}`).join("\n")}\nIf the submitted recipe is essentially the same dish (even with minor variations like different toppings or small ingredient swaps), mark it as a duplicate.`
+    : "";
+
+  const prompt = `You are a strict but helpful recipe quality checker for Culirated.
+User "${name}" submitted:
+---
+${recipe}
+---${similarContext}
+IMPORTANT: Always respond in ${language}. All feedback, comments and messages must be in ${language}.
+Return ONLY valid JSON, no markdown:
+{
+  "approved": true/false,
+  "score": 0-100,
+  "feedback": "1-2 friendly sentences",
+  "duplicate": true/false,
+  "duplicate_of": "title of the existing recipe if duplicate, empty string otherwise",
+  "criteria": [
+    {"name":"Completeness","passed":true/false,"comment":""},
+    {"name":"Ratios","passed":true/false,"comment":""},
+    {"name":"Logic","passed":true/false,"comment":""},
+    {"name":"Prep time","passed":true/false,"comment":""},
+    {"name":"SEO quality","passed":true/false,"comment":""}
+  ],
+  "suggestions": {
+    "title": {"original":"","improved":"","changed":true/false},
+    "description": {"improved":"max 160 chars SEO description"}
+  },
+  "corrections": {
+    "ratios_fixed": true/false,
+    "prep_time_fixed": true/false,
+    "original_prep_time": "what the user submitted, empty if not fixed",
+    "corrected_prep_time": number in minutes if fixed, null otherwise,
+    "what_was_fixed": "clear friendly explanation of what was corrected and why, empty string if nothing",
+    "ingredients": ["corrected list — ONLY fix mathematical quantity errors (e.g. '50kg salt' → '50g salt'). NEVER add new ingredients. NEVER remove ingredients. Keep exact author wording."],
+    "steps": ["corrected steps — ONLY fix logical/impossible errors. NEVER add new steps. Keep author voice exactly."]
+  },
+  "meta": {
+    "title": "clean title",
+    "cuisine": "Italian/Mexican/Asian/Indian/Thai/Chinese/Japanese/Greek/Middle Eastern/French/American/Mediterranean",
+    "course": "Breakfast/Lunch/Dinner/Appetizer/Side dish/Dessert/Snack",
+    "diet": [],
+    "method": "Air fryer/Slow cooker/Sheet pan/BBQ & Grill/One pot/No-cook",
+    "time_category": "Under 20 min/Under 30 min/Under 1 hour/Weekend project",
+    "main_ingredient": "Chicken/Beef/Fish & seafood/Pasta/Rice/Eggs/Vegetables/Legumes/Pork",
+    "prep_time": 0,
+    "servings": 0,
+    "calories": null,
+    "difficulty": "easy/medium/advanced"
+  }
+}`;
+
+  try {
+    const message = await anthropic.messages.create({
+      model: "claude-sonnet-4-20250514",
+      max_tokens: 2000,
+      messages: [{ role: "user", content: prompt }],
+    });
+    const text = (message.content[0] as any).text.replace(/```json|```/g, "").trim();
+    const result = JSON.parse(text);
+
+    // If Claude says it's a duplicate, override approval
+    if (result.duplicate) {
+      result.approved = false;
+      const dupMsg: Record<string, string> = {
+        Dutch: `Dit recept staat al op Culirated. Heb je iets anders te delen?`,
+        German: `Dieses Rezept existiert bereits auf Culirated. Hast du etwas anderes anzubieten?`,
+        French: `Cette recette existe déjà sur Culirated. Avez-vous quelque chose d'autre à partager?`,
+        English: `This recipe already exists on Culirated. Do you have something else to share?`,
+      };
+      result.feedback = dupMsg[language] || dupMsg.English;
+      if (!result.criteria) result.criteria = [];
+      result.criteria.unshift({ name: "Duplicate check", passed: false, comment: `Too similar to existing recipe: "${result.duplicate_of}"` });
+    }
+
+    return NextResponse.json({ ...result, ai_score: { score: result.score, ...result.meta } });
+  } catch (err) {
+    console.error(err);
+    return NextResponse.json({ approved: false, feedback: "Something went wrong. Please try again." }, { status: 500 });
+  }
+}
+
