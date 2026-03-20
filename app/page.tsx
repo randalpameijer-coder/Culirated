@@ -260,7 +260,8 @@ function RecipeCard({ recipe, featured, lang, t }: { recipe: any; featured?: boo
 }
 
 export default function Home() {
-  const [lang, setLang] = useState("ja");
+  const [mounted, setMounted] = useState(false);
+  const [lang, setLang] = useState("en");
   const [localLang, setLocalLang] = useState("en");
   const [activeNav, setActiveNav] = useState("");
   const [activeFilter, setFilter] = useState(0);
@@ -274,6 +275,7 @@ export default function Home() {
     const detected = detectLocalLang();
     setLocalLang(detected);
     setLang(detected);
+    setMounted(true);
   }, []);
 
   useEffect(() => {
@@ -370,6 +372,8 @@ export default function Home() {
     }
     fetchRecipes();
   }, [activeFilter]);
+
+  if (!mounted) return null;
 
   return (
     <>
