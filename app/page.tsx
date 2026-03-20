@@ -274,7 +274,7 @@ export default function Home() {
   useEffect(() => {
     const detected = detectLocalLang();
     setLocalLang(detected);
-    setLang(detected);
+    // setLang(detected);  // tijdelijk uit voor test
     setMounted(true);
   }, []);
 
