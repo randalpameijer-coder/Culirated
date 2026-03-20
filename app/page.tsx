@@ -455,7 +455,7 @@ export default function Home() {
                 ↗ {isNL ? "Delen" : isDE ? "Teilen" : isFR ? "Partager" : "Share"}
               </button>
               {showShare && (
-                <div style={{ position: "absolute", top: "calc(100% + 8px)", right: 0, background: "#fff", borderRadius: "16px", padding: "8px", border: "1px solid rgba(180,160,120,0.2)", boxShadow: "0 12px 40px rgba(30,22,9,0.12)", zIndex: 200, minWidth: "200px", maxWidth: "calc(100vw - 32px)" }}>
+                <div style={{ position: "absolute", top: "calc(100% + 8px)", right: 0, background: "#fff", borderRadius: "16px", padding: "8px", border: "1px solid rgba(180,160,120,0.2)", boxShadow: "0 12px 40px rgba(30,22,9,0.12)", zIndex: 200, minWidth: "200px" }}>
                   {[
                     { label: "WhatsApp", href: `https://wa.me/?text=${encodeURIComponent("Check Culirated — AI-curated recipes: https://culirated.com")}`, icon: "💬" },
                     { label: "Facebook", href: `https://www.facebook.com/sharer/sharer.php?u=https://culirated.com`, icon: "📘" },
@@ -535,7 +535,7 @@ export default function Home() {
               ))}
             </div>
             <div style={{ display: "flex", gap: "14px", flexWrap: "wrap", marginBottom: "44px" }}>
-              <a href="/recipes" style={{ textDecoration: "none" }}><button style={{ background: "#1e1609", color: "#f5f0e8", border: "none", borderRadius: "28px", padding: "14px 28px", fontFamily: "monospace", fontSize: "14px", cursor: "pointer", fontWeight: "500" }}>{t.btnDiscover}</button></a>
+              <a href="/submit" style={{ textDecoration: "none" }}><button style={{ background: "#1e1609", color: "#f5f0e8", border: "none", borderRadius: "28px", padding: "14px 28px", fontFamily: "monospace", fontSize: "14px", cursor: "pointer", fontWeight: "500" }}>{t.btnDiscover}</button></a>
               <button style={{ background: "transparent", color: "#3a7a32", border: "1.5px solid #3a7a32", borderRadius: "28px", padding: "14px 22px", fontFamily: "monospace", fontSize: "14px", cursor: "pointer" }} onClick={() => document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth" })}>{t.btnHow}</button>
             </div>
             <div className="stats-row" style={{ display: "flex", gap: "44px" }}>
@@ -577,24 +577,24 @@ export default function Home() {
             <div className="cats-grid">
               {t.cats.map((cat: any) => {
                 const catLinks: Record<string, string> = {
-                  [t.cats[0]?.name]: "/recipes?diet=Vegetarian",
-                  [t.cats[1]?.name]: "/recipes?cuisine=Italian",
-                  [t.cats[2]?.name]: "/recipes?cuisine=Asian",
-                  [t.cats[3]?.name]: "/recipes?method=BBQ+%26+Grill",
-                  [t.cats[4]?.name]: "/recipes?diet=Vegan",
-                  [t.cats[5]?.name]: "/recipes?occasion=Meal+prep",
-                  [t.cats[6]?.name]: "/recipes?course=Breakfast",
-                  [t.cats[7]?.name]: "/recipes?diet=Gluten-free",
+                  [t.cats[0]?.name]: "/recipes?time=Under+20+min",
+                  [t.cats[1]?.name]: "/recipes?diet=Vegetarian",
+                  [t.cats[2]?.name]: "/recipes?cuisine=Italian",
+                  [t.cats[3]?.name]: "/recipes?cuisine=Asian",
+                  [t.cats[4]?.name]: "/recipes?course=Breakfast",
+                  [t.cats[5]?.name]: "/recipes?method=BBQ+%26+Grill",
+                  [t.cats[6]?.name]: "/recipes?diet=Vegan",
+                  [t.cats[7]?.name]: "/recipes?occasion=Meal+prep",
                 };
                 const countKeys: Record<string, string> = {
-                  [t.cats[0]?.name]: "Vegetarian",
-                  [t.cats[1]?.name]: "Italian",
-                  [t.cats[2]?.name]: "Asian",
-                  [t.cats[3]?.name]: "BBQ & Grill",
-                  [t.cats[4]?.name]: "Vegan",
-                  [t.cats[5]?.name]: "Meal prep",
-                  [t.cats[6]?.name]: "Breakfast",
-                  [t.cats[7]?.name]: "Gluten-free",
+                  [t.cats[0]?.name]: "Under 20 min",
+                  [t.cats[1]?.name]: "Vegetarian",
+                  [t.cats[2]?.name]: "Italian",
+                  [t.cats[3]?.name]: "Asian",
+                  [t.cats[4]?.name]: "Breakfast",
+                  [t.cats[5]?.name]: "BBQ & Grill",
+                  [t.cats[6]?.name]: "Vegan",
+                  [t.cats[7]?.name]: "Meal prep",
                 };
                 const href = catLinks[cat.name] || "/recipes";
                 const realCount = catCounts[countKeys[cat.name]];
@@ -784,7 +784,7 @@ function FooterShareButton({ lang }: { lang: string }) {
         ↗ {isNL ? "Delen" : isDE ? "Teilen" : isFR ? "Partager" : "Share"}
       </button>
       {show && (
-        <div style={{ position: "absolute", bottom: "calc(100% + 8px)", left: 0, right: "auto", background: "#fff", borderRadius: "16px", padding: "8px", border: "1px solid rgba(180,160,120,0.2)", boxShadow: "0 12px 40px rgba(30,22,9,0.12)", zIndex: 200, minWidth: "200px", maxWidth: "calc(100vw - 32px)" }}>
+        <div style={{ position: "absolute", bottom: "calc(100% + 8px)", right: 0, background: "#fff", borderRadius: "16px", padding: "8px", border: "1px solid rgba(180,160,120,0.2)", boxShadow: "0 12px 40px rgba(30,22,9,0.12)", zIndex: 200, minWidth: "200px" }}>
           {socials.map(b => (
             <a key={b.label} href={b.href} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "10px", padding: "9px 14px", borderRadius: "10px", fontFamily: "monospace", fontSize: "12px", color: "#1e1609" }}
