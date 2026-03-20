@@ -260,8 +260,8 @@ function RecipeCard({ recipe, featured, lang, t }: { recipe: any; featured?: boo
 }
 
 export default function Home() {
-  const localLang = detectLocalLang();
-  const [lang, setLang] = useState(localLang);
+  const [lang, setLang] = useState("en");
+  const [localLang, setLocalLang] = useState("en");
   const [activeNav, setActiveNav] = useState("");
   const [activeFilter, setFilter] = useState(0);
   const [dbRecipes, setDbRecipes] = useState<any[]>([]);
@@ -270,12 +270,14 @@ export default function Home() {
   const [translating, setTranslating] = useState(false);
   const [translatedT, setTranslatedT] = useState<any>(null);
 
-  // Translate UI dynamically if language not in static T
   useEffect(() => {
-    if (T[lang]) {
-      setTranslatedT(null);
-      return;
-    }
+    const detected = detectLocalLang();
+    setLocalLang(detected);
+    setLang(detected);
+  }, []);
+
+  useEffect(() => {
+    if (T[lang]) { setTranslatedT(null); return; }
     const cacheKey = `culirated_ui_${lang}`;
     try {
       const cached = localStorage.getItem(cacheKey);
