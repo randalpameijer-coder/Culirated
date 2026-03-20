@@ -454,7 +454,7 @@ export default function Home() {
         }
       `}</style>
 
-      <div style={{ minHeight: "100vh", background: "#f5f0e8", overflowX: "hidden", maxWidth: "100vw" }}>
+      <div suppressHydrationWarning style={{ minHeight: "100vh", background: "#f5f0e8", overflowX: "hidden", maxWidth: "100vw" }}>
         {/* Top bar */}
         <div style={{ background: "#1e1609", padding: "8px 16px", textAlign: "center", overflow: "hidden" }}>
           <span style={{ color: "#c8b080", fontFamily: "monospace", fontSize: "11px", letterSpacing: "1px", whiteSpace: "nowrap", display: "block", overflow: "hidden", textOverflow: "ellipsis" }}>{t.topbar}</span>
