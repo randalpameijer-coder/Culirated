@@ -10,15 +10,8 @@ const supabase = createClient(
 
 function detectLocalLang(): string {
   if (typeof navigator === "undefined") return "en";
-  const b = (navigator.language || "en").split("-")[0].toLowerCase();
-  return ["nl", "de", "fr"].includes(b) ? b : "en";
+  return (navigator.language || "en").split("-")[0].toLowerCase();
 }
-
-const LOCAL_NAMES: Record<string, string> = {
-  nl: "🇳🇱 Nederlands",
-  de: "🇩🇪 Deutsch",
-  fr: "🇫🇷 Français",
-};
 
 const T: Record<string, any> = {
   en: {
@@ -38,7 +31,7 @@ const T: Record<string, any> = {
     cats: [
       { name: "Quick (<20 min)", icon: "⚡", count: 1240 }, { name: "Vegetarian", icon: "🌿", count: 3870 },
       { name: "Italian", icon: "🍝", count: 2150 }, { name: "Asian", icon: "🥢", count: 1980 },
-      { name: "Breakfast", icon: "🍳", count: 890 }, { name: "BBQ", icon: "🔥", count: 640 },
+      { name: "Baking", icon: "🍞", count: 890 }, { name: "BBQ", icon: "🔥", count: 640 },
       { name: "Vegan", icon: "✦", count: 2300 }, { name: "Meal Prep", icon: "📦", count: 770 },
     ],
     gridTitle: "Freshly Approved", gridSub: "Latest recipes that passed the AI quality check",
@@ -81,7 +74,7 @@ const T: Record<string, any> = {
     cats: [
       { name: "Snel (<20 min)", icon: "⚡", count: 1240 }, { name: "Vegetarisch", icon: "🌿", count: 3870 },
       { name: "Italiaans", icon: "🍝", count: 2150 }, { name: "Aziatisch", icon: "🥢", count: 1980 },
-      { name: "Ontbijt", icon: "🍳", count: 890 }, { name: "BBQ", icon: "🔥", count: 640 },
+      { name: "Bakken", icon: "🍞", count: 890 }, { name: "BBQ", icon: "🔥", count: 640 },
       { name: "Vegan", icon: "✦", count: 2300 }, { name: "Meal Prep", icon: "📦", count: 770 },
     ],
     gridTitle: "Vers Goedgekeurd", gridSub: "Laatste recepten die de AI-kwaliteitscheck hebben gehaald",
@@ -124,7 +117,7 @@ const T: Record<string, any> = {
     cats: [
       { name: "Schnell (<20 Min)", icon: "⚡", count: 1240 }, { name: "Vegetarisch", icon: "🌿", count: 3870 },
       { name: "Italienisch", icon: "🍝", count: 2150 }, { name: "Asiatisch", icon: "🥢", count: 1980 },
-      { name: "Frühstück", icon: "🍳", count: 890 }, { name: "BBQ", icon: "🔥", count: 640 },
+      { name: "Backen", icon: "🍞", count: 890 }, { name: "BBQ", icon: "🔥", count: 640 },
       { name: "Vegan", icon: "✦", count: 2300 }, { name: "Meal Prep", icon: "📦", count: 770 },
     ],
     gridTitle: "Frisch Genehmigt", gridSub: "Neueste Rezepte, die die KI-Qualitätsprüfung bestanden haben",
@@ -167,7 +160,7 @@ const T: Record<string, any> = {
     cats: [
       { name: "Rapide (<20 min)", icon: "⚡", count: 1240 }, { name: "Végétarien", icon: "🌿", count: 3870 },
       { name: "Italien", icon: "🍝", count: 2150 }, { name: "Asiatique", icon: "🥢", count: 1980 },
-      { name: "Petit-déjeuner", icon: "🍳", count: 890 }, { name: "BBQ", icon: "🔥", count: 640 },
+      { name: "Pâtisserie", icon: "🍞", count: 890 }, { name: "BBQ", icon: "🔥", count: 640 },
       { name: "Vegan", icon: "✦", count: 2300 }, { name: "Meal Prep", icon: "📦", count: 770 },
     ],
     gridTitle: "Fraîchement Approuvé", gridSub: "Dernières recettes ayant passé le contrôle qualité IA",
@@ -274,7 +267,41 @@ export default function Home() {
   const [dbRecipes, setDbRecipes] = useState<any[]>([]);
   const [catCounts, setCatCounts] = useState<Record<string, number>>({});
   const [showShare, setShowShare] = useState(false);
-  const t = T[lang];
+  const [translating, setTranslating] = useState(false);
+  const [translatedT, setTranslatedT] = useState<any>(null);
+
+  // Translate UI dynamically if language not in static T
+  useEffect(() => {
+    if (T[lang]) {
+      setTranslatedT(null);
+      return;
+    }
+    const cacheKey = `culirated_ui_${lang}`;
+    try {
+      const cached = localStorage.getItem(cacheKey);
+      if (cached) { setTranslatedT(JSON.parse(cached)); return; }
+    } catch {}
+    async function doTranslate() {
+      setTranslating(true);
+      try {
+        const res = await fetch("/api/translate-ui", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ targetLang: lang }),
+        });
+        const data = await res.json();
+        try { localStorage.setItem(cacheKey, JSON.stringify(data)); } catch {}
+        setTranslatedT(data);
+      } catch (e) {
+        console.error("Translation failed:", e);
+      } finally {
+        setTranslating(false);
+      }
+    }
+    doTranslate();
+  }, [lang]);
+
+  const t = T[lang] || translatedT || T.en;
   const isEN = lang === "en";
   const isNL = lang === "nl";
   const isDE = lang === "de";
@@ -444,11 +471,14 @@ export default function Home() {
               <input placeholder={t.search} style={{ background: "rgba(180,160,120,0.12)", border: "1px solid transparent", borderRadius: "24px", padding: "9px 16px 9px 36px", fontFamily: "monospace", fontSize: "12px", color: "#1e1609", outline: "none", width: "200px" }} />
               <span style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", fontSize: "13px", color: "#8a7355" }}>🔍</span>
             </div>
+            {translating && (
+              <span style={{ flexShrink: 0, fontFamily: "monospace", fontSize: "11px", color: "#8a7355" }}>✦ translating…</span>
+            )}
             {!isEN && (
               <button onClick={() => setLang("en")} style={{ flexShrink: 0, background: "rgba(30,22,9,0.05)", border: "1px solid rgba(180,160,120,0.3)", borderRadius: "20px", padding: "7px 14px", cursor: "pointer", fontFamily: "monospace", fontSize: "12px", color: "#4a3820", whiteSpace: "nowrap" }}>🇬🇧 EN</button>
             )}
             {isEN && localLang !== "en" && (
-              <button onClick={() => setLang(localLang)} style={{ flexShrink: 0, background: "rgba(30,22,9,0.05)", border: "1px solid rgba(180,160,120,0.3)", borderRadius: "20px", padding: "7px 14px", cursor: "pointer", fontFamily: "monospace", fontSize: "12px", color: "#4a3820", whiteSpace: "nowrap" }}>{LOCAL_NAMES[localLang]}</button>
+              <button onClick={() => setLang(localLang)} style={{ flexShrink: 0, background: "rgba(30,22,9,0.05)", border: "1px solid rgba(180,160,120,0.3)", borderRadius: "20px", padding: "7px 14px", cursor: "pointer", fontFamily: "monospace", fontSize: "12px", color: "#4a3820", whiteSpace: "nowrap" }}>{localLang.toUpperCase()}</button>
             )}
             <div className="nav-share" style={{ position: "relative", flexShrink: 0 }}>
               <button onClick={() => setShowShare(!showShare)} style={{ background: "#e8581a", border: "none", borderRadius: "20px", padding: "10px 16px", cursor: "pointer", fontFamily: "monospace", fontSize: "12px", color: "#fff", whiteSpace: "nowrap", fontWeight: "500" }}>
@@ -577,24 +607,24 @@ export default function Home() {
             <div className="cats-grid">
               {t.cats.map((cat: any) => {
                 const catLinks: Record<string, string> = {
-                  [t.cats[0]?.name]: "/recipes?time=Under+20+min",
-                  [t.cats[1]?.name]: "/recipes?diet=Vegetarian",
-                  [t.cats[2]?.name]: "/recipes?cuisine=Italian",
-                  [t.cats[3]?.name]: "/recipes?cuisine=Asian",
-                  [t.cats[4]?.name]: "/recipes?course=Breakfast",
-                  [t.cats[5]?.name]: "/recipes?method=BBQ+%26+Grill",
-                  [t.cats[6]?.name]: "/recipes?diet=Vegan",
-                  [t.cats[7]?.name]: "/recipes?occasion=Meal+prep",
+                  [t.cats[0]?.name]: "/recipes?diet=Vegetarian",
+                  [t.cats[1]?.name]: "/recipes?cuisine=Italian",
+                  [t.cats[2]?.name]: "/recipes?cuisine=Asian",
+                  [t.cats[3]?.name]: "/recipes?method=BBQ+%26+Grill",
+                  [t.cats[4]?.name]: "/recipes?diet=Vegan",
+                  [t.cats[5]?.name]: "/recipes?occasion=Meal+prep",
+                  [t.cats[6]?.name]: "/recipes?course=Breakfast",
+                  [t.cats[7]?.name]: "/recipes?diet=Gluten-free",
                 };
                 const countKeys: Record<string, string> = {
-                  [t.cats[0]?.name]: "Under 20 min",
-                  [t.cats[1]?.name]: "Vegetarian",
-                  [t.cats[2]?.name]: "Italian",
-                  [t.cats[3]?.name]: "Asian",
-                  [t.cats[4]?.name]: "Breakfast",
-                  [t.cats[5]?.name]: "BBQ & Grill",
-                  [t.cats[6]?.name]: "Vegan",
-                  [t.cats[7]?.name]: "Meal prep",
+                  [t.cats[0]?.name]: "Vegetarian",
+                  [t.cats[1]?.name]: "Italian",
+                  [t.cats[2]?.name]: "Asian",
+                  [t.cats[3]?.name]: "BBQ & Grill",
+                  [t.cats[4]?.name]: "Vegan",
+                  [t.cats[5]?.name]: "Meal prep",
+                  [t.cats[6]?.name]: "Breakfast",
+                  [t.cats[7]?.name]: "Gluten-free",
                 };
                 const href = catLinks[cat.name] || "/recipes";
                 const realCount = catCounts[countKeys[cat.name]];
