@@ -638,7 +638,7 @@ export default function Home() {
                       <div style={{ fontSize: "24px", marginBottom: "8px" }}>{cat.icon}</div>
                       <div style={{ fontFamily: "monospace", fontSize: "11px", color: "#c8b898", marginBottom: "4px", lineHeight: 1.35 }}>{cat.name}</div>
                       <div style={{ fontFamily: "monospace", fontSize: "10px", color: "#6b5840" }}>
-                        {realCount !== undefined ? realCount.toLocaleString() : cat.count.toLocaleString()}
+                        {realCount !== undefined ? realCount.toLocaleString("en-US") : cat.count.toLocaleString("en-US")}
                       </div>
                     </div>
                   </a>
