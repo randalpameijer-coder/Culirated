@@ -140,6 +140,7 @@ function RecipesContent() {
               <div style={{ width: "36px", height: "36px", borderRadius: "10px", background: "linear-gradient(135deg,#2d5a27,#6aa86e)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "18px" }}>🍃</div>
               <span style={{ fontFamily: "Georgia, serif", fontWeight: "900", fontSize: "22px", color: "#1e1609" }}>Culirated</span>
             </a>
+            <a href="/" style={{ fontFamily: "monospace", fontSize: "12px", color: "#8a7355", textDecoration: "none", whiteSpace: "nowrap" }}>← Home</a>
             <div style={{ flex: 1 }} />
             <a href="/submit" style={{ textDecoration: "none" }}>
               <button style={{ background: "#3a7a32", color: "#e8f5e4", border: "none", borderRadius: "24px", padding: "10px 18px", cursor: "pointer", fontFamily: "monospace", fontSize: "12px", fontWeight: "500" }}>+ Submit Recipe</button>
@@ -261,3 +262,4 @@ function RecipesContent() {
     </>
   );
 }
+
