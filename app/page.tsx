@@ -38,7 +38,7 @@ const T: Record<string, any> = {
     cats: [
       { name: "Quick (<20 min)", icon: "⚡", count: 1240 }, { name: "Vegetarian", icon: "🌿", count: 3870 },
       { name: "Italian", icon: "🍝", count: 2150 }, { name: "Asian", icon: "🥢", count: 1980 },
-      { name: "Baking", icon: "🍞", count: 890 }, { name: "BBQ", icon: "🔥", count: 640 },
+      { name: "Breakfast", icon: "🍳", count: 890 }, { name: "BBQ", icon: "🔥", count: 640 },
       { name: "Vegan", icon: "✦", count: 2300 }, { name: "Meal Prep", icon: "📦", count: 770 },
     ],
     gridTitle: "Freshly Approved", gridSub: "Latest recipes that passed the AI quality check",
@@ -81,7 +81,7 @@ const T: Record<string, any> = {
     cats: [
       { name: "Snel (<20 min)", icon: "⚡", count: 1240 }, { name: "Vegetarisch", icon: "🌿", count: 3870 },
       { name: "Italiaans", icon: "🍝", count: 2150 }, { name: "Aziatisch", icon: "🥢", count: 1980 },
-      { name: "Bakken", icon: "🍞", count: 890 }, { name: "BBQ", icon: "🔥", count: 640 },
+      { name: "Ontbijt", icon: "🍳", count: 890 }, { name: "BBQ", icon: "🔥", count: 640 },
       { name: "Vegan", icon: "✦", count: 2300 }, { name: "Meal Prep", icon: "📦", count: 770 },
     ],
     gridTitle: "Vers Goedgekeurd", gridSub: "Laatste recepten die de AI-kwaliteitscheck hebben gehaald",
@@ -124,7 +124,7 @@ const T: Record<string, any> = {
     cats: [
       { name: "Schnell (<20 Min)", icon: "⚡", count: 1240 }, { name: "Vegetarisch", icon: "🌿", count: 3870 },
       { name: "Italienisch", icon: "🍝", count: 2150 }, { name: "Asiatisch", icon: "🥢", count: 1980 },
-      { name: "Backen", icon: "🍞", count: 890 }, { name: "BBQ", icon: "🔥", count: 640 },
+      { name: "Frühstück", icon: "🍳", count: 890 }, { name: "BBQ", icon: "🔥", count: 640 },
       { name: "Vegan", icon: "✦", count: 2300 }, { name: "Meal Prep", icon: "📦", count: 770 },
     ],
     gridTitle: "Frisch Genehmigt", gridSub: "Neueste Rezepte, die die KI-Qualitätsprüfung bestanden haben",
@@ -167,7 +167,7 @@ const T: Record<string, any> = {
     cats: [
       { name: "Rapide (<20 min)", icon: "⚡", count: 1240 }, { name: "Végétarien", icon: "🌿", count: 3870 },
       { name: "Italien", icon: "🍝", count: 2150 }, { name: "Asiatique", icon: "🥢", count: 1980 },
-      { name: "Pâtisserie", icon: "🍞", count: 890 }, { name: "BBQ", icon: "🔥", count: 640 },
+      { name: "Petit-déjeuner", icon: "🍳", count: 890 }, { name: "BBQ", icon: "🔥", count: 640 },
       { name: "Vegan", icon: "✦", count: 2300 }, { name: "Meal Prep", icon: "📦", count: 770 },
     ],
     gridTitle: "Fraîchement Approuvé", gridSub: "Dernières recettes ayant passé le contrôle qualité IA",
