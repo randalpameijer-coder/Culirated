@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+
+Disallow: /api/
+Disallow: /reset
+Disallow: /_next/
+
+Sitemap: https://culirated.com/sitemap.xml
