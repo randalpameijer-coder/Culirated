@@ -13,7 +13,7 @@ const PLATFORMS = [
   { platform: "instagram", accountId: "69d0e9ce3343e779922ed7e0" },
   { platform: "pinterest", accountId: "69d0e9853343e779922ed704" },
   { platform: "tiktok",    accountId: "69d0e9e13343e779922ed81f" },
-  { platform: "youtube",   accountId: "69d0eb1b3343e779922edcb0" },
+  // YouTube weggelaten — vereist video content, niet geschikt voor foto posts
 ];
 
 export async function GET(request: Request) {
