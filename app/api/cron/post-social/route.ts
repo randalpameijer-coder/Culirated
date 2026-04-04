@@ -50,6 +50,7 @@ export async function GET(request: Request) {
         const body: Record<string, unknown> = {
           platforms: [{ platform, accountId }],
           content: caption,
+          publishNow: true,
         };
 
         // Voeg afbeelding toe als die beschikbaar is
