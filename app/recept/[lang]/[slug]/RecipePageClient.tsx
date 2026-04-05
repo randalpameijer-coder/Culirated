@@ -64,14 +64,18 @@ export default function RecipePageClient({
         .hero-img { width: 100%; height: 480px; object-fit: cover; display: block; }
         .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 48px; }
         .ai-score-badge { position: absolute; top: 24px; right: 48px; background: rgba(255,255,255,0.95); backdrop-filter: blur(12px); border-radius: 16px; padding: 14px 18px; text-align: center; }
+        .hero-mobile-info { display: none; }
+        .hero-desktop-overlay { display: block; }
         .ingredients-col { position: sticky; top: 90px; }
         .detail-nav-name { display: inline; }
         .community-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
         @media (max-width: 768px) {
-          .hero-img { height: 280px; }
+          .hero-img { height: 260px; }
+          .hero-desktop-overlay { display: none !important; }
+          .hero-mobile-info { display: block; background: #1e1609; padding: 20px 16px 24px; }
+          .ai-score-badge { display: none; }
           .content-grid { grid-template-columns: 1fr !important; }
           .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 32px; }
-          .ai-score-badge { top: 16px; right: 16px; padding: 10px 14px; }
           .ingredients-col { position: static; top: auto; }
           .detail-nav-name { display: none; }
           .community-grid { grid-template-columns: repeat(2, 1fr); }
@@ -109,34 +113,69 @@ export default function RecipePageClient({
           <div style={{ position: "relative" }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={recipe.image_url} alt={translation.title} className="hero-img" />
-            <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(30,22,9,0.7) 0%, transparent 50%)" }} />
-            <div style={{ position: "absolute", bottom: "40px", left: "0", right: "0", maxWidth: "1280px", margin: "0 auto", padding: "0 clamp(16px, 4vw, 48px)" }}>
-              <h1 style={{ fontFamily: "Georgia, serif", fontSize: "clamp(28px, 5vw, 52px)", fontWeight: "700", color: "#fff", lineHeight: 1.1, letterSpacing: "-1px", textShadow: "0 2px 20px rgba(0,0,0,0.3)" }}>
+
+            {/* Desktop: overlay met titel + gradient */}
+            <div className="hero-desktop-overlay">
+              <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(30,22,9,0.7) 0%, transparent 50%)" }} />
+              <div style={{ position: "absolute", bottom: "40px", left: "0", right: "0", maxWidth: "1280px", margin: "0 auto", padding: "0 clamp(16px, 4vw, 48px)" }}>
+                <h1 style={{ fontFamily: "Georgia, serif", fontSize: "clamp(28px, 5vw, 52px)", fontWeight: "700", color: "#fff", lineHeight: 1.1, letterSpacing: "-1px", textShadow: "0 2px 20px rgba(0,0,0,0.3)" }}>
+                  {translation.title}
+                </h1>
+                {translation.description && (
+                  <p style={{ fontFamily: "Georgia, serif", fontSize: "clamp(15px, 2vw, 18px)", color: "rgba(255,255,255,0.85)", marginTop: "12px", maxWidth: "640px", lineHeight: 1.5 }}>{translation.description}</p>
+                )}
+                <div style={{ display: "flex", gap: "12px", marginTop: "16px", flexWrap: "wrap" }}>
+                  {[
+                    { icon: "😍", count: recipe.reactions_want || 0 },
+                    { icon: "✅", count: recipe.reactions_made || 0 },
+                    { icon: "❤️", count: recipe.reactions_favorite || 0 },
+                  ].map(r => r.count > 0 && (
+                    <div key={r.icon} style={{ display: "flex", alignItems: "center", gap: "5px", background: "rgba(255,255,255,0.15)", backdropFilter: "blur(8px)", borderRadius: "20px", padding: "5px 12px" }}>
+                      <span style={{ fontSize: "16px" }}>{r.icon}</span>
+                      <span style={{ fontFamily: "monospace", fontSize: "12px", color: "#fff", fontWeight: "500" }}>{r.count}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              {score && (
+                <div className="ai-score-badge">
+                  <div style={{ fontFamily: "monospace", fontSize: "10px", color: "#8a7355", letterSpacing: "1px", marginBottom: "4px" }}>AI SCORE</div>
+                  <div style={{ fontFamily: "Georgia, serif", fontSize: "28px", fontWeight: "700", color: "#2d5a27", lineHeight: 1 }}>{score}</div>
+                  <div style={{ fontFamily: "monospace", fontSize: "10px", color: "#8a7355" }}>/100</div>
+                </div>
+              )}
+            </div>
+
+            {/* Mobiel: titel + omschrijving onder de foto, donkere balk */}
+            <div className="hero-mobile-info">
+              <h1 style={{ fontFamily: "Georgia, serif", fontSize: "26px", fontWeight: "700", color: "#fff", lineHeight: 1.2, letterSpacing: "-0.5px", marginBottom: "10px" }}>
                 {translation.title}
               </h1>
               {translation.description && (
-                <p style={{ fontFamily: "Georgia, serif", fontSize: "clamp(15px, 2vw, 18px)", color: "rgba(255,255,255,0.85)", marginTop: "12px", maxWidth: "640px", lineHeight: 1.5 }}>{translation.description}</p>
+                <p style={{ fontFamily: "Georgia, serif", fontSize: "15px", color: "rgba(255,255,255,0.78)", lineHeight: 1.5, marginBottom: "12px" }}>{translation.description}</p>
               )}
-              <div style={{ display: "flex", gap: "12px", marginTop: "16px", flexWrap: "wrap" }}>
-                {[
-                  { icon: "😍", count: recipe.reactions_want || 0 },
-                  { icon: "✅", count: recipe.reactions_made || 0 },
-                  { icon: "❤️", count: recipe.reactions_favorite || 0 },
-                ].map(r => r.count > 0 && (
-                  <div key={r.icon} style={{ display: "flex", alignItems: "center", gap: "5px", background: "rgba(255,255,255,0.15)", backdropFilter: "blur(8px)", borderRadius: "20px", padding: "5px 12px" }}>
-                    <span style={{ fontSize: "16px" }}>{r.icon}</span>
-                    <span style={{ fontFamily: "monospace", fontSize: "12px", color: "#fff", fontWeight: "500" }}>{r.count}</span>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                  {[
+                    { icon: "😍", count: recipe.reactions_want || 0 },
+                    { icon: "✅", count: recipe.reactions_made || 0 },
+                    { icon: "❤️", count: recipe.reactions_favorite || 0 },
+                  ].map(r => r.count > 0 && (
+                    <div key={r.icon} style={{ display: "flex", alignItems: "center", gap: "4px", background: "rgba(255,255,255,0.12)", borderRadius: "20px", padding: "4px 10px" }}>
+                      <span style={{ fontSize: "14px" }}>{r.icon}</span>
+                      <span style={{ fontFamily: "monospace", fontSize: "11px", color: "#fff" }}>{r.count}</span>
+                    </div>
+                  ))}
+                </div>
+                {score && (
+                  <div style={{ background: "rgba(255,255,255,0.1)", borderRadius: "12px", padding: "8px 14px", textAlign: "center", flexShrink: 0 }}>
+                    <div style={{ fontFamily: "monospace", fontSize: "9px", color: "#8a7355", letterSpacing: "1px" }}>AI SCORE</div>
+                    <div style={{ fontFamily: "Georgia, serif", fontSize: "22px", fontWeight: "700", color: "#6aa86e", lineHeight: 1 }}>{score}</div>
+                    <div style={{ fontFamily: "monospace", fontSize: "9px", color: "#8a7355" }}>/100</div>
                   </div>
-                ))}
+                )}
               </div>
             </div>
-            {score && (
-              <div className="ai-score-badge">
-                <div style={{ fontFamily: "monospace", fontSize: "10px", color: "#8a7355", letterSpacing: "1px", marginBottom: "4px" }}>AI SCORE</div>
-                <div style={{ fontFamily: "Georgia, serif", fontSize: "28px", fontWeight: "700", color: "#2d5a27", lineHeight: 1 }}>{score}</div>
-                <div style={{ fontFamily: "monospace", fontSize: "10px", color: "#8a7355" }}>/100</div>
-              </div>
-            )}
           </div>
         )}
 
