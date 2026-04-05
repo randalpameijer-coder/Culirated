@@ -6,12 +6,48 @@ import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
+// Kanaal labels NL + kleuren
+const CHANNEL_META: Record<string, { label: string; color: string }> = {
+  "Organic Search":  { label: "Organisch zoeken",  color: "#3a7a32" },
+  "Organic Social":  { label: "Organisch social",   color: "#185FA5" },
+  "Direct":          { label: "Direct",              color: "#854F0B" },
+  "Referral":        { label: "Referral",            color: "#534AB7" },
+  "Paid Search":     { label: "Betaald zoeken",      color: "#993C1D" },
+  "Paid Social":     { label: "Betaald social",      color: "#993C1D" },
+  "Email":           { label: "E-mail",              color: "#3B6D11" },
+  "Unassigned":      { label: "Onbekend",            color: "#b8a882" },
+};
+
+// Platform iconen
+const PLATFORM_ICON: Record<string, string> = {
+  instagram: "📸",
+  tiktok: "🎵",
+  pinterest: "📌",
+  facebook: "👤",
+  twitter: "🐦",
+  youtube: "▶️",
+  linkedin: "💼",
+  reddit: "🔴",
+  google: "🔍",
+  bing: "🔎",
+  "(direct)": "🔗",
+};
+
+function getPlatformIcon(source: string): string {
+  const s = source.toLowerCase();
+  for (const [key, icon] of Object.entries(PLATFORM_ICON)) {
+    if (s.includes(key)) return icon;
+  }
+  return "🌐";
+}
+
 function buildEmailHtml(data: any) {
   const {
     visitors, pageviews, avgDuration, bounceRate, newVsReturning,
-    topPages, sources, countries,
+    topPages, trafficSources, countries,
     totalRecipes, translatedRecipes, communityPhotosYesterday,
     seoClicks, seoImpressions, seoPosition, seoTopQueries, seoTopPages,
+    topLangs, reactions, socialPostsYesterday,
   } = data;
 
   return `
@@ -98,16 +134,59 @@ function buildEmailHtml(data: any) {
         <div style="font-family:monospace;font-size:9px;letter-spacing:2px;color:#b8a882;text-transform:uppercase;margin-bottom:14px;">Content & vertalingen</div>
         <table width="100%" cellpadding="0" cellspacing="0">
           <tr>
-            <td width="50%" style="padding-right:8px;">
+            <td width="33%" style="padding-right:8px;">
               <div style="background:#fff;border:1px solid #e0d8c8;border-radius:10px;padding:14px 16px;">
                 <div style="font-family:Georgia,serif;font-size:26px;color:#1e1609;line-height:1;margin-bottom:4px;">${totalRecipes.toLocaleString("nl-NL")}</div>
                 <div style="font-family:monospace;font-size:9px;color:#8a7355;letter-spacing:1px;text-transform:uppercase;">Totaal recepten</div>
               </div>
             </td>
-            <td width="50%">
+            <td width="33%" style="padding-right:8px;">
               <div style="background:#fff;border:1px solid #e0d8c8;border-radius:10px;padding:14px 16px;">
                 <div style="font-family:Georgia,serif;font-size:26px;color:#1e1609;line-height:1;margin-bottom:4px;">${translatedRecipes.toLocaleString("nl-NL")}</div>
                 <div style="font-family:monospace;font-size:9px;color:#8a7355;letter-spacing:1px;text-transform:uppercase;">Vertaald (20 talen)</div>
+              </div>
+            </td>
+            <td width="33%">
+              <div style="background:#fff;border:1px solid #e0d8c8;border-radius:10px;padding:14px 16px;">
+                <div style="font-family:Georgia,serif;font-size:26px;color:#1e1609;line-height:1;margin-bottom:4px;">${socialPostsYesterday}</div>
+                <div style="font-family:monospace;font-size:9px;color:#8a7355;letter-spacing:1px;text-transform:uppercase;">Social posts gisteren</div>
+              </div>
+            </td>
+          </tr>
+        </table>
+      </div>
+
+      <!-- COMMUNITY REACTIES -->
+      <div style="padding:24px 32px;border-bottom:1px solid #ede6d6;">
+        <div style="font-family:monospace;font-size:9px;letter-spacing:2px;color:#b8a882;text-transform:uppercase;margin-bottom:14px;">Community reacties · gisteren</div>
+        <table width="100%" cellpadding="0" cellspacing="0">
+          <tr>
+            <td width="25%" style="padding-right:8px;">
+              <div style="background:#fff;border:1px solid #e0d8c8;border-radius:10px;padding:14px 16px;text-align:center;">
+                <div style="font-size:20px;line-height:1;margin-bottom:6px;">🔥</div>
+                <div style="font-family:Georgia,serif;font-size:22px;color:#1e1609;line-height:1;margin-bottom:4px;">${reactions.fire}</div>
+                <div style="font-family:monospace;font-size:9px;color:#8a7355;letter-spacing:1px;">FIRE</div>
+              </div>
+            </td>
+            <td width="25%" style="padding-right:8px;">
+              <div style="background:#fff;border:1px solid #e0d8c8;border-radius:10px;padding:14px 16px;text-align:center;">
+                <div style="font-size:20px;line-height:1;margin-bottom:6px;">❤️</div>
+                <div style="font-family:Georgia,serif;font-size:22px;color:#1e1609;line-height:1;margin-bottom:4px;">${reactions.heart}</div>
+                <div style="font-family:monospace;font-size:9px;color:#8a7355;letter-spacing:1px;">LOVE</div>
+              </div>
+            </td>
+            <td width="25%" style="padding-right:8px;">
+              <div style="background:#fff;border:1px solid #e0d8c8;border-radius:10px;padding:14px 16px;text-align:center;">
+                <div style="font-size:20px;line-height:1;margin-bottom:6px;">👨‍🍳</div>
+                <div style="font-family:Georgia,serif;font-size:22px;color:#1e1609;line-height:1;margin-bottom:4px;">${reactions.chef}</div>
+                <div style="font-family:monospace;font-size:9px;color:#8a7355;letter-spacing:1px;">MADE IT</div>
+              </div>
+            </td>
+            <td width="25%">
+              <div style="background:#fff;border:1px solid #e0d8c8;border-radius:10px;padding:14px 16px;text-align:center;">
+                <div style="font-size:20px;line-height:1;margin-bottom:6px;">💬</div>
+                <div style="font-family:Georgia,serif;font-size:22px;color:#1e1609;line-height:1;margin-bottom:4px;">${reactions.total}</div>
+                <div style="font-family:monospace;font-size:9px;color:#8a7355;letter-spacing:1px;">TOTAAL</div>
               </div>
             </td>
           </tr>
@@ -181,18 +260,51 @@ function buildEmailHtml(data: any) {
       </div>
       ` : ""}
 
-      <!-- BRONNEN -->
+      <!-- TOP TALEN -->
+      ${topLangs.length > 0 ? `
       <div style="padding:24px 32px;border-bottom:1px solid #ede6d6;">
-        <div style="font-family:monospace;font-size:9px;letter-spacing:2px;color:#b8a882;text-transform:uppercase;margin-bottom:14px;">Verkeersbronnen</div>
-        ${sources.map((s: any) => `
+        <div style="font-family:monospace;font-size:9px;letter-spacing:2px;color:#b8a882;text-transform:uppercase;margin-bottom:14px;">Top talen · bezochte receptpagina's</div>
+        ${topLangs.map((l: any, i: number) => `
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
-            <span style="font-family:monospace;font-size:11px;color:#1e1609;width:130px;">${s.name}</span>
+            <span style="font-family:monospace;font-size:11px;color:#b8a882;width:20px;">#${i + 1}</span>
+            <span style="font-family:monospace;font-size:11px;color:#1e1609;width:40px;text-transform:uppercase;">${l.lang}</span>
             <div style="flex:1;background:#ede6d6;border-radius:4px;height:8px;">
-              <div style="width:${s.pct}%;height:100%;border-radius:4px;background:#3a7a32;"></div>
+              <div style="width:${l.pct}%;height:100%;border-radius:4px;background:#185FA5;"></div>
             </div>
-            <span style="font-family:monospace;font-size:10px;color:#8a7355;width:36px;text-align:right;">${s.pct}%</span>
+            <span style="font-family:monospace;font-size:10px;color:#8a7355;width:36px;text-align:right;">${l.pct}%</span>
+            <span style="font-family:monospace;font-size:10px;color:#3a7a32;min-width:40px;text-align:right;">${l.views} pv</span>
           </div>
         `).join("")}
+      </div>
+      ` : ""}
+
+      <!-- VERKEERSBRONNEN UITGESPLITST -->
+      <div style="padding:24px 32px;border-bottom:1px solid #ede6d6;">
+        <div style="font-family:monospace;font-size:9px;letter-spacing:2px;color:#b8a882;text-transform:uppercase;margin-bottom:14px;">Verkeersbronnen · herkomst</div>
+        <table width="100%" cellpadding="0" cellspacing="0">
+          <thead>
+            <tr style="background:#f5f0e8;">
+              <th style="font-family:monospace;font-size:9px;color:#b8a882;letter-spacing:1px;text-transform:uppercase;text-align:left;padding:8px 10px;border-bottom:2px solid #e0d8c8;">Kanaal</th>
+              <th style="font-family:monospace;font-size:9px;color:#b8a882;letter-spacing:1px;text-transform:uppercase;text-align:left;padding:8px 10px;border-bottom:2px solid #e0d8c8;">Platform</th>
+              <th style="font-family:monospace;font-size:9px;color:#b8a882;letter-spacing:1px;text-transform:uppercase;text-align:right;padding:8px 10px;border-bottom:2px solid #e0d8c8;">Sessies</th>
+              <th style="font-family:monospace;font-size:9px;color:#b8a882;letter-spacing:1px;text-transform:uppercase;text-align:right;padding:8px 10px;border-bottom:2px solid #e0d8c8;">%</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${trafficSources.map((r: any) => `
+              <tr style="background:${r.isSubrow ? "#faf7f2" : "#fff"};">
+                <td style="font-family:monospace;font-size:${r.isSubrow ? "10px" : "11px"};color:${r.isSubrow ? "#b8a882" : r.color};padding:${r.isSubrow ? "5px 10px 5px 24px" : "9px 10px"};border-bottom:1px solid #ede6d6;font-weight:${r.isSubrow ? "normal" : "600"};">
+                  ${!r.isSubrow ? `<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${r.color};margin-right:6px;vertical-align:middle;"></span>` : ""}${r.channel}
+                </td>
+                <td style="font-family:monospace;font-size:11px;color:#1e1609;padding:${r.isSubrow ? "5px 10px" : "9px 10px"};border-bottom:1px solid #ede6d6;">
+                  ${r.icon ? `${r.icon} ` : ""}${r.source}
+                </td>
+                <td style="font-family:Georgia,serif;font-size:${r.isSubrow ? "12px" : "14px"};color:#1e1609;text-align:right;padding:${r.isSubrow ? "5px 10px" : "9px 10px"};border-bottom:1px solid #ede6d6;">${r.sessions}</td>
+                <td style="font-family:monospace;font-size:10px;color:#8a7355;text-align:right;padding:${r.isSubrow ? "5px 10px" : "9px 10px"};border-bottom:1px solid #ede6d6;">${r.pct}%</td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
       </div>
 
       <!-- LANDEN -->
@@ -253,13 +365,17 @@ export async function GET(request: Request) {
       limit: 5,
     });
 
-    const [sourcesResponse] = await analyticsClient.runReport({
+    // Bronnen: kanaal + source gecombineerd voor maximale uitsplitsing
+    const [channelResponse] = await analyticsClient.runReport({
       property: propertyId,
       dateRanges: [{ startDate: "yesterday", endDate: "yesterday" }],
-      dimensions: [{ name: "sessionDefaultChannelGroup" }],
+      dimensions: [
+        { name: "sessionDefaultChannelGroup" },
+        { name: "sessionSource" },
+      ],
       metrics: [{ name: "sessions" }],
       orderBys: [{ metric: { metricName: "sessions" }, desc: true }],
-      limit: 5,
+      limit: 30,
     });
 
     const [countriesResponse] = await analyticsClient.runReport({
@@ -269,6 +385,22 @@ export async function GET(request: Request) {
       metrics: [{ name: "sessions" }],
       orderBys: [{ metric: { metricName: "sessions" }, desc: true }],
       limit: 5,
+    });
+
+    // Top talen via pagePath
+    const [langsResponse] = await analyticsClient.runReport({
+      property: propertyId,
+      dateRanges: [{ startDate: "yesterday", endDate: "yesterday" }],
+      dimensions: [{ name: "pagePath" }],
+      metrics: [{ name: "screenPageViews" }],
+      dimensionFilter: {
+        filter: {
+          fieldName: "pagePath",
+          stringFilter: { matchType: "BEGINS_WITH", value: "/recept/" },
+        },
+      },
+      orderBys: [{ metric: { metricName: "screenPageViews" }, desc: true }],
+      limit: 200,
     });
 
     const row = overviewResponse.rows?.[0];
@@ -287,18 +419,80 @@ export async function GET(request: Request) {
       views: parseInt(r.metricValues?.[0]?.value || "0"),
     }));
 
-    const totalSessions = (sourcesResponse.rows || []).reduce(
+    // Bronnen verwerken: groepeer per kanaal, toon subrows per platform
+    const totalSessions = (channelResponse.rows || []).reduce(
       (sum, r) => sum + parseInt(r.metricValues?.[0]?.value || "0"), 0
     );
-    const sources = (sourcesResponse.rows || []).map((r) => ({
-      name: r.dimensionValues?.[0]?.value || "Overig",
-      pct: Math.round((parseInt(r.metricValues?.[0]?.value || "0") / Math.max(totalSessions, 1)) * 100),
-    }));
+
+    type ChannelGroup = { sessions: number; sources: { source: string; sessions: number }[] };
+    const channelMap: Record<string, ChannelGroup> = {};
+    for (const r of channelResponse.rows || []) {
+      const channel = r.dimensionValues?.[0]?.value || "Unassigned";
+      const source = r.dimensionValues?.[1]?.value || "(direct)";
+      const sessions = parseInt(r.metricValues?.[0]?.value || "0");
+      if (!channelMap[channel]) channelMap[channel] = { sessions: 0, sources: [] };
+      channelMap[channel].sessions += sessions;
+      channelMap[channel].sources.push({ source, sessions });
+    }
+
+    // Bouw tabelrijen: kanaalregel + subrows per platform
+    const trafficSources: any[] = [];
+    const sortedChannels = Object.entries(channelMap).sort((a, b) => b[1].sessions - a[1].sessions);
+
+    for (const [channel, data] of sortedChannels) {
+      const meta = CHANNEL_META[channel] || { label: channel, color: "#b8a882" };
+      const pct = Math.round((data.sessions / Math.max(totalSessions, 1)) * 100);
+
+      trafficSources.push({
+        isSubrow: false,
+        channel: meta.label,
+        source: "",
+        icon: "",
+        sessions: data.sessions,
+        pct,
+        color: meta.color,
+      });
+
+      const sortedSources = data.sources.sort((a, b) => b.sessions - a.sessions);
+      for (const s of sortedSources) {
+        if (!s.source || s.source === "(not set)") continue;
+        const subPct = Math.round((s.sessions / Math.max(totalSessions, 1)) * 100);
+        trafficSources.push({
+          isSubrow: true,
+          channel: "",
+          source: s.source,
+          icon: getPlatformIcon(s.source),
+          sessions: s.sessions,
+          pct: subPct,
+          color: meta.color,
+        });
+      }
+    }
 
     const countries = (countriesResponse.rows || []).map((r) => ({
       name: r.dimensionValues?.[0]?.value || "Onbekend",
       sessions: parseInt(r.metricValues?.[0]?.value || "0"),
     }));
+
+    // Talen aggregeren
+    const langViewMap: Record<string, number> = {};
+    for (const r of langsResponse.rows || []) {
+      const path = r.dimensionValues?.[0]?.value || "";
+      const match = path.match(/^\/recept\/([a-z]{2})\//);
+      if (match) {
+        const lang = match[1];
+        langViewMap[lang] = (langViewMap[lang] || 0) + parseInt(r.metricValues?.[0]?.value || "0");
+      }
+    }
+    const totalLangViews = Object.values(langViewMap).reduce((s, v) => s + v, 0);
+    const topLangs = Object.entries(langViewMap)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 8)
+      .map(([lang, views]) => ({
+        lang,
+        views,
+        pct: Math.round((views / Math.max(totalLangViews, 1)) * 100),
+      }));
 
     // ── Supabase ──────────────────────────────────────────────────────────────
     const supabase = createClient(
@@ -306,7 +500,6 @@ export async function GET(request: Request) {
       process.env.SUPABASE_SERVICE_KEY!
     );
 
-    // Receptnamen ophalen voor top pagina's (UUID's omzetten naar titels)
     const uuidRegex = /([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/i;
     const recipeIds = rawTopPages
       .map((p) => { const m = p.page.match(uuidRegex); return m ? m[1] : null; })
@@ -332,13 +525,11 @@ export async function GET(request: Request) {
       .select("id", { count: "exact", head: true })
       .eq("status", "approved");
 
-    // Aantal uniek vertaalde recepten (heeft een EN vertaling)
     const { count: translatedRecipes } = await supabase
       .from("recipe_translations")
       .select("recipe_id", { count: "exact", head: true })
       .eq("lang", "en");
 
-    // Community foto uploads gisteren
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
     yesterday.setHours(0, 0, 0, 0);
@@ -350,6 +541,25 @@ export async function GET(request: Request) {
       .select("id", { count: "exact", head: true })
       .gte("created_at", yesterday.toISOString())
       .lt("created_at", today.toISOString());
+
+    const { count: socialPostsYesterday } = await supabase
+      .from("recipes")
+      .select("id", { count: "exact", head: true })
+      .gte("posted_to_social", yesterday.toISOString())
+      .lt("posted_to_social", today.toISOString());
+
+    const { data: reactionRows } = await supabase
+      .from("reactions")
+      .select("type")
+      .gte("created_at", yesterday.toISOString())
+      .lt("created_at", today.toISOString());
+
+    const reactions = {
+      fire: (reactionRows || []).filter((r: any) => r.type === "fire").length,
+      heart: (reactionRows || []).filter((r: any) => r.type === "heart").length,
+      chef: (reactionRows || []).filter((r: any) => r.type === "chef").length,
+      total: (reactionRows || []).length,
+    };
 
     // ── Google Search Console ─────────────────────────────────────────────────
     let seoClicks = 0;
@@ -364,26 +574,16 @@ export async function GET(request: Request) {
         scopes: ["https://www.googleapis.com/auth/webmasters.readonly"],
       });
       const searchConsole = google.searchconsole({ version: "v1", auth });
-
       const yesterdayStr = yesterday.toISOString().split("T")[0];
 
       const [overviewSC, queriesSC, pagesSC] = await Promise.all([
         searchConsole.searchanalytics.query({
           siteUrl,
-          requestBody: {
-            startDate: yesterdayStr,
-            endDate: yesterdayStr,
-            dimensions: [],
-          },
+          requestBody: { startDate: yesterdayStr, endDate: yesterdayStr, dimensions: [] },
         }),
         searchConsole.searchanalytics.query({
           siteUrl,
-          requestBody: {
-            startDate: yesterdayStr,
-            endDate: yesterdayStr,
-            dimensions: ["query"],
-            rowLimit: 5,
-          },
+          requestBody: { startDate: yesterdayStr, endDate: yesterdayStr, dimensions: ["query"], rowLimit: 5 },
         }),
         searchConsole.searchanalytics.query({
           siteUrl,
@@ -393,7 +593,7 @@ export async function GET(request: Request) {
             dimensions: ["page"],
             rowLimit: 5,
             dimensionFilterGroups: [{
-              filters: [{ dimension: "page", operator: "contains", expression: "/recipe/" }],
+              filters: [{ dimension: "page", operator: "contains", expression: "/recept/" }],
             }],
           },
         }),
@@ -412,7 +612,6 @@ export async function GET(request: Request) {
         position: r.position ? r.position.toFixed(1) : "—",
       }));
 
-      // Top rankende receptpagina's — UUID's omzetten naar titels
       const rawSeoPages = (pagesSC.data.rows || []).map((r: any) => ({
         page: (r.keys?.[0] || "").replace("https://culirated.com", ""),
         clicks: r.clicks || 0,
@@ -441,11 +640,14 @@ export async function GET(request: Request) {
     // ── Email sturen ──────────────────────────────────────────────────────────
     const html = buildEmailHtml({
       visitors, pageviews, avgDuration, bounceRate, newVsReturning,
-      topPages, sources, countries,
+      topPages, trafficSources, countries,
       totalRecipes: totalRecipes || 0,
       translatedRecipes: translatedRecipes || 0,
       communityPhotosYesterday: communityPhotosYesterday || 0,
+      socialPostsYesterday: socialPostsYesterday || 0,
       seoClicks, seoImpressions, seoPosition, seoTopQueries, seoTopPages,
+      topLangs,
+      reactions,
     });
 
     await resend.emails.send({
